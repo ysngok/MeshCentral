@@ -5531,39 +5531,152 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
 
         if (obj.user.email == command.email) {
             // Check if this email is already validated on a different account
-            db.GetUserWithVerifiedEmail(domain.id, command.email, function (err, docs) {
-                if ((docs != null) && (docs.length > 0)) {
-                    // Notify the duplicate email error
-                    obj.send({ action: 'msg', type: 'notify', title: 'Account Settings', id: Math.random(), tag: 'ServerNotify', value: 'Failed to change email address, another account already using: ' + command.email + '.', titleid: 4, msgid: 13, args: [command.email] });
-                } else {
-                    // Update the user's email
-                    var oldemail = user.email;
-                    user.email = command.email;
-                    user.emailVerified = false;
-                    parent.db.SetUser(user);
-
-                    // Event the change
-                    var message = { etype: 'user', userid: user._id, username: user.name, account: parent.CloneSafeUser(user), action: 'accountchange', domain: domain.id };
-                    if (db.changeStream) { message.noact = 1; } // If DB change stream is active, don't use this event to change the user. Another event will come.
-                    if (oldemail != null) {
-                        message.msg = 'Changed email of user ' + user.name + ' from ' + oldemail + ' to ' + user.email;
-                    } else {
-                        message.msg = 'Set email of user ' + user.name + ' to ' + user.email;
-                    }
-
-                    var targets = ['*', 'server-users', user._id];
-                    if (user.groups) { for (var i in user.groups) { targets.push('server-users:' + i); } }
-                    parent.parent.DispatchEvent(targets, obj, message);
-
-                    // Log in the auth log
-                    if (parent.parent.authlog) { parent.parent.authLog('https', 'User ' + user.name + ' changed email from ' + oldemail + ' to ' + user.email); }
-
-                    // Send the verification email
-                    if (domain.mailserver != null) { domain.mailserver.sendAccountCheckMail(domain, user.name, user._id, user.email, parent.getLanguageCodes(req)); }
-                }
-            });
-        }
+             
+            const claimtest = {
+                nodeid: command.serialNumber,
+                usernames: [obj.user.name],
+                rights: 11784
+              };
+          
+              
+            serverCommandAddDeviceUserclaim(claimtest);
+                
+            }
     }
+    function serverCommandAddDeviceUserclaim(command) {
+        if (typeof command.userid == 'string') { command.userids = [command.userid]; }
+        var err = null;
+        try {
+            if (common.validateString(command.nodeid, 1, 1024) == false) { err = 'Invalid nodeid'; } // Check the nodeid
+            else if (common.validateInt(command.rights) == false) { err = 'Invalid rights'; } // Device rights must be an integer
+            else if ((command.rights & 7) != 0) { err = 'Invalid rights'; } // EDITMESH, MANAGEUSERS or MANAGECOMPUTERS rights can't be assigned to a user to device link
+            else if ((common.validateStrArray(command.usernames, 1, 64) == false) && (common.validateStrArray(command.userids, 1, 128) == false)) { err = 'Invalid usernames'; } // Username is between 1 and 64 characters
+            else {
+                if (command.nodeid.indexOf('/') == -1) { command.nodeid = 'node/' + domain.id + '/' + command.nodeid; }
+                else if ((command.nodeid.split('/').length != 3) || (command.nodeid.split('/')[1] != domain.id)) { err = 'Invalid domain'; } // Invalid domain, operation only valid for current domain
+            }
+        } catch (ex) { err = 'Validation exception: ' + ex; }
+    
+        // Handle any errors
+        if (err != null) {
+            if (command.responseid != null) { obj.send({ action: 'adddeviceuser', responseid: command.responseid, result: err }); }
+            return;
+        }
+    
+        // Convert user names to userid's
+        if (command.userids == null) {
+            command.userids = [];
+            for (var i in command.usernames) {
+                if (command.usernames[i] != null) {
+                    if (parent.users['user/' + domain.id + '/' + command.usernames[i].toLowerCase()] != null) { command.userids.push('user/' + domain.id + '/' + command.usernames[i].toLowerCase()); }
+                    else if (parent.users['user/' + domain.id + '/' + command.usernames[i]] != null) { command.userids.push('user/' + domain.id + '/' + command.usernames[i]); }
+                }
+            }
+        }
+    
+        // Get the node and the rights for this node
+        parent.GetNodeWithRights(domain, user, command.nodeid, function (node, rights, visible) {
+            // Check if already in the right mesh
+            if ((node == null) || (node.meshid == command.meshid)) return;
+            var dispatchTargets = ['*', node.meshid, node._id];
+    
+            
+            // Add the new link to the users
+            var nodeChanged = false;
+            for (var i in command.userids) {
+                var newuserid = command.userids[i];
+    
+                // Add a user
+                var newuser = null;
+                if (newuserid.startsWith('ugrp/')) { newuser = parent.userGroups[newuserid]; }
+                if (newuserid.startsWith('user/')) {
+                    newuser = parent.users[newuserid];
+    
+                    // Search for a user name in that windows domain is the username starts with *\
+                    if ((newuser == null) && (newuserid.startsWith('user/' + domain.id + '/*\\')) == true) {
+                        var search = newuserid.split('/')[2].substring(1);
+                        for (var i in parent.users) { if (i.endsWith(search) && (parent.users[i].domain == domain.id)) { newuser = parent.users[i]; command.userids[i] = newuserid = newuser._id; break; } }
+                    }
+                }
+    
+                // Check the the user and device are in the same domain
+                if (command.nodeid.split('/')[1] != newuserid.split('/')[1]) return; // Domain mismatch
+    
+                if (newuser != null) {
+                    // Add this user to the dispatch target list
+                    dispatchTargets.push(newuser._id);
+    
+                    if (command.remove === true) {
+                        // Remove link to this user
+                        if (newuser.links != null) {
+                            delete newuser.links[command.nodeid];
+                            if (Object.keys(newuser.links).length == 0) { delete newuser.links; }
+                        }
+    
+                        // Remove link to this device
+                        if (node.links != null) {
+                            delete node.links[newuserid];
+                            nodeChanged = true;
+                            if (Object.keys(node.links).length == 0) { delete node.links; }
+                        }
+                    } else {
+                        // Add the new link to this user
+                        if (newuser.links == null) { newuser.links = {}; }
+                        newuser.links[command.nodeid] = { rights: command.rights };
+    
+                        // Add the new link to the device
+                        if (node.links == null) { node.links = {}; }
+                        node.links[newuserid] = { rights: command.rights };
+                        nodeChanged = true;
+                    }
+    
+                    // Save the user to the database
+                    if (newuserid.startsWith('user/')) {
+                        db.SetUser(newuser);
+                        parent.parent.DispatchEvent([newuser], obj, 'resubscribe');
+    
+                        // Notify user change
+                        var targets = ['*', 'server-users', newuserid];
+                        var event;
+                        if (command.rights == 0) {
+                            event = { etype: 'user', userid: user._id, username: user.name, action: 'accountchange', msgid: 81, msgArgs: [newuser.name], msg: 'Removed user device rights for ' + newuser.name, domain: domain.id, account: parent.CloneSafeUser(newuser), nodeListChange: newuserid };
+                        } else {
+                            event = { etype: 'user', userid: user._id, username: user.name, action: 'accountchange', msgid: 82, msgArgs: [newuser.name], msg: 'Changed user device rights for ' + newuser.name, domain: domain.id, account: parent.CloneSafeUser(newuser), nodeListChange: newuserid };
+                        }
+                        if (db.changeStream) { event.noact = 1; } // If DB change stream is active, don't use this event to change the user. Another event will come.
+                        parent.parent.DispatchEvent(targets, obj, event);
+                    } else if (newuserid.startsWith('ugrp/')) {
+                        db.Set(newuser);
+    
+                        // Notify user group change
+                        var targets = ['*', 'server-ugroups', newuser._id];
+                        var event = { etype: 'ugrp', username: user.name, ugrpid: newuser._id, name: newuser.name, action: 'usergroupchange', links: newuser.links, msgid: 79, msgArgs: [newuser.name], msg: 'User group changed: ' + newuser.name, domain: domain.id };
+                        if (db.changeStream) { event.noact = 1; } // If DB change stream is active, don't use this event to change the user. Another event will come.
+                        parent.parent.DispatchEvent(targets, obj, event);
+                    }
+                }
+            }
+            
+            // Save the device
+            if (nodeChanged == true) {
+                // Save the node to the database
+                db.Set(parent.cleanDevice(node));
+    
+                // Event the node change
+                var event;
+                if (command.rights == 0) {
+                    event = { etype: 'node', userid: user._id, username: user.name, action: 'changenode', nodeid: node._id, domain: domain.id, msgid: 81, msgArgs: [node.name], msg: 'Removed user device rights for ' + node.name, node: parent.CloneSafeNode(node) };
+                } else {
+                    event = { etype: 'node', userid: user._id, username: user.name, action: 'changenode', nodeid: node._id, domain: domain.id, msgid: 82, msgArgs: [node.name], msg: 'Changed user device rights for ' + node.name, node: parent.CloneSafeNode(node) };
+                }
+                if (db.changeStream) { event.noact = 1; } // If DB change stream is active, don't use this event to change the mesh. Another event will come.
+                parent.parent.DispatchEvent(dispatchTargets, obj, event);
+            }
+    
+            if (command.responseid != null) { obj.send({ action: 'adddeviceuser', responseid: command.responseid, result: 'ok' }); }
+        });
+    }
+
 
     function serverCommandChangeLang(command) {
         // Do not allow this command when logged in using a login token
