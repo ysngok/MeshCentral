@@ -1840,7 +1840,7 @@ module.exports.CreateDB = function (parent, func) {
             obj.getLocalAmtNodes = function (func) { obj.file.find({ type: 'node', host: { $exists: true, $ne: null }, intelamt: { $exists: true } }, func); };
             obj.getAmtUuidMeshNode = function (domainid, mtype, uuid, func) { obj.file.find({ type: 'node', domain: domainid, mtype: mtype, 'intelamt.uuid': uuid }, func); };
             obj.isMaxType = function (max, type, domainid, func) { if (max == null) { func(false); } else { obj.file.count({ type: type, domain: domainid }, function (err, count) { func((err != null) || (count > max), count); }); } }
-
+            
             // Database actions on the events collection
             obj.GetAllEvents = function (func) { obj.eventsfile.find({}, func); };
             obj.StoreEvent = function (event, func) { obj.eventsfile.insert(event, func); };
