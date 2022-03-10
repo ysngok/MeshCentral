@@ -269,7 +269,17 @@
             <div id=p0 style="display:none">
                 <div id=p0message><span id=p0span>Server disconnected</span>, <href onclick=reload() style=cursor:pointer><u>click to reconnect</u></href>.</div>
             </div>
+ 
             <div id=p1 style="display:none">
+                <div id="p1title">
+                   <div><h1>ADD Devices</h1></div>
+                    
+                   <input type=button id=claimdevice onclick="return account_claimdevice()" value="add New Device" />&nbsp;
+                </div>
+                <div style="border-top-style:solid;border-top-width:1px;border-top-color:#DDDDDD;cursor:pointer;font-size:small;margin-top:4px"></div>
+                
+               <div id="xmap-info-window"></div>
+
                 <div id="p1title">
                     <div style="display:none" id="devListToolbarViewIcons">
                         <div tabindex=0 id=devViewButton1 class=viewSelector onclick=onDeviceViewChange(1) onkeypress="if (event.key == 'Enter') { onDeviceViewChange(1); }" title="Columns"><div class="viewSelector2"></div></div>
@@ -11432,7 +11442,22 @@
             Q('dp2email').focus();
             return false;
         }
-
+        function account_claimdevice() {
+            if (xxdialogMode) return false;
+            var x = "add serial number of device " + '<br /><br />';
+            x += addHtmlValue('SerialNumber', '<input id=SerialNumber style=width:230px maxlength=256  />');
+            setDialogMode(2, "Claim device", 3, account_deviceclaim, x);
+            Q('SerialNumber').focus();
+            
+        }
+        function account_deviceclaim() {
+            console.log(Q('SerialNumber').value)
+            if (userinfo.email != null) { 
+                meshserver.send({ action: 'claimdevice', serialNumber: Q('SerialNumber').value ,email:userinfo.email})
+            }
+           
+        }
+        
         function account_validateEmail(e, email) {
             QE('idx_dlgOkButton', validateEmail(Q('dp2email').value) && (Q('dp2email').value != userinfo.email));
             if ((e != null) && (e.keyCode == 13)) { dialogclose(1); }
