@@ -868,6 +868,8 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                             if (typeof domain.consentmessages.desktop == 'string') { command.soptions.consentMsgDesktop = domain.consentmessages.desktop; }
                             if (typeof domain.consentmessages.terminal == 'string') { command.soptions.consentMsgTerminal = domain.consentmessages.terminal; }
                             if (typeof domain.consentmessages.files == 'string') { command.soptions.consentMsgFiles = domain.consentmessages.files; }
+                            if ((typeof domain.consentmessages.consenttimeout == 'number') && (domain.consentmessages.consenttimeout > 0)) { command.soptions.consentTimeout = domain.consentmessages.consenttimeout; }
+                            if (domain.consentmessages.autoacceptontimeout === true) { command.soptions.consentAutoAccept = true; }
                         }
                         if (typeof domain.notificationmessages == 'object') {
                             if (typeof domain.notificationmessages.title == 'string') { command.soptions.notifyTitle = domain.notificationmessages.title; }
@@ -2134,6 +2136,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                                     return;
                                 }
                                 mesh.invite = { codes: command.invite.codes, flags: command.invite.flags };
+                                if (typeof command.invite.ag == 'number') { mesh.invite.ag = command.invite.ag; }
                                 if (change != '') { change += ' and invite code changed'; } else { change += 'Device group "' + mesh.name + '" invite code changed'; }
                                 changesids.push(6);
                             }
@@ -3183,6 +3186,9 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                     // Do not allow this command if 2FA's are locked
                     if ((domain.passwordrequirements) && (domain.passwordrequirements.lock2factor == true)) return;
 
+                    // Do not allow this command if backup codes are not allowed
+                    if ((domain.passwordrequirements) && (domain.passwordrequirements.backupcode2factor == false)) return;
+
                     // Do not allow this command when logged in using a login token
                     if (req.session.loginToken != null) break;
 
@@ -3202,7 +3208,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
 
                         var domainName = parent.certificates.CommonName;
                         if (domain.dns != null) { domainName = domain.dns; }
-                        ws.send(JSON.stringify({ action: 'otpauth-request', secret: secret, url: otplib.authenticator.keyuri(user.name, domainName, secret) }));
+                        ws.send(JSON.stringify({ action: 'otpauth-request', secret: secret, url: otplib.authenticator.keyuri(encodeURIComponent(user.name), domainName, secret) }));
                     }
                     break;
                 }
@@ -3210,6 +3216,9 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                 {
                     // Do not allow this command if 2FA's are locked
                     if ((domain.passwordrequirements) && (domain.passwordrequirements.lock2factor == true)) return;
+
+                    // Do not allow this command if backup codes are not allowed
+                    if ((domain.passwordrequirements) && (domain.passwordrequirements.backupcode2factor == false)) return;
 
                     // Do not allow this command when logged in using a login token
                     if (req.session.loginToken != null) break;
@@ -3250,6 +3259,9 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                     // Do not allow this command if 2FA's are locked
                     if ((domain.passwordrequirements) && (domain.passwordrequirements.lock2factor == true)) return;
 
+                    // Do not allow this command if backup codes are not allowed
+                    if ((domain.passwordrequirements) && (domain.passwordrequirements.backupcode2factor == false)) return;
+
                     // Do not allow this command when logged in using a login token
                     if (req.session.loginToken != null) break;
 
@@ -3280,6 +3292,9 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                 {
                     // Do not allow this command if 2FA's are locked
                     if ((domain.passwordrequirements) && (domain.passwordrequirements.lock2factor == true)) return;
+
+                    // Do not allow this command if backup codes are not allowed
+                    if ((domain.passwordrequirements) && (domain.passwordrequirements.backupcode2factor == false)) return;
 
                     // Do not allow this command when logged in using a login token
                     if (req.session.loginToken != null) break;
@@ -3667,7 +3682,9 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                     break;
                 }
 
-                const inviteCookie = parent.parent.encodeCookie({ a: 4, mid: command.meshid, f: command.flags, expire: command.expire * 60 }, parent.parent.invitationLinkEncryptionKey);
+                const cookie = { a: 4, mid: command.meshid, f: command.flags, expire: command.expire * 60 };
+                if ((typeof command.agents == 'number') && (command.agents != 0)) { cookie.ag = command.agents; }
+                const inviteCookie = parent.parent.encodeCookie(cookie, parent.parent.invitationLinkEncryptionKey);
                 if (inviteCookie == null) { if (command.responseid != null) { try { ws.send(JSON.stringify({ action: 'createInviteLink', responseid: command.responseid, result: 'Unable to generate invitation cookie' })); } catch (ex) { } } break; }
 
                 // Create the server url
@@ -4571,7 +4588,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                         if (type == 'csv') {
                             try {
                                 // Create the CSV file
-                                output = 'id,name,rname,host,icon,ip,osdesc,groupname,av,update,firewall,avdetails,cpu,osbuild,biosDate,biosVendor,biosVersion,boardName,boardVendor,boardVersion,productUuid,agentOpenSSL,agentCommitDate,agentCommitHash,agentCompileTime,netIfCount,macs,addresses,lastConnectTime,lastConnectAddr\r\n';
+                                output = 'id,name,rname,host,icon,ip,osdesc,groupname,av,update,firewall,avdetails,cpu,osbuild,biosDate,biosVendor,biosVersion,boardName,boardVendor,boardVersion,productUuid,totalMemory,agentOpenSSL,agentCommitDate,agentCommitHash,agentCompileTime,netIfCount,macs,addresses,lastConnectTime,lastConnectAddr\r\n';
                                 for (var i = 0; i < results.length; i++) {
                                     const nodeinfo = results[i];
 
@@ -4613,6 +4630,17 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                                         if (nodeinfo.sys.hardware.identifiers && (nodeinfo.sys.hardware.identifiers.board_version)) { output += csvClean(nodeinfo.sys.hardware.identifiers.board_version); }
                                         output += ',';
                                         if (nodeinfo.sys.hardware.identifiers && (nodeinfo.sys.hardware.identifiers.product_uuid)) { output += csvClean(nodeinfo.sys.hardware.identifiers.product_uuid); }
+                                        output += ',';
+                                        if (nodeinfo.sys.hardware.windows.memory) {
+                                            var totalMemory = 0;
+                                            for (var j in nodeinfo.sys.hardware.windows.memory) {
+                                                if (nodeinfo.sys.hardware.windows.memory[j].Capacity) {
+                                                    if (typeof nodeinfo.sys.hardware.windows.memory[j].Capacity == 'number') { totalMemory += nodeinfo.sys.hardware.windows.memory[j].Capacity; }
+                                                    if (typeof nodeinfo.sys.hardware.windows.memory[j].Capacity == 'string') { totalMemory += parseInt(nodeinfo.sys.hardware.windows.memory[j].Capacity); }
+                                                }
+                                            }
+                                            output += csvClean('' + totalMemory);
+                                        }
                                     } else if ((nodeinfo.sys) && (nodeinfo.sys.hardware) && (nodeinfo.sys.hardware.mobile)) {
                                         // Mobile
                                         output += ',';
@@ -4628,6 +4656,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                                         output += ',';
                                         output += ',';
                                         if (nodeinfo.sys.hardware.mobile && (nodeinfo.sys.hardware.mobile.id)) { output += csvClean(nodeinfo.sys.hardware.mobile.id); }
+                                        output += ',';
                                     } else if ((nodeinfo.sys) && (nodeinfo.sys.hardware) && (nodeinfo.sys.hardware.windows) && (nodeinfo.sys.hardware.linux)) {
                                         // Linux
                                         output += ',';
@@ -4646,8 +4675,9 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                                         if (nodeinfo.sys.hardware.linux && (nodeinfo.sys.hardware.linux.board_version)) { output += csvClean(nodeinfo.sys.hardware.linux.board_version); }
                                         output += ',';
                                         if (nodeinfo.sys.hardware.linux && (nodeinfo.sys.hardware.linux.product_uuid)) { output += csvClean(nodeinfo.sys.hardware.linux.product_uuid); }
+                                        output += ',';
                                     } else {
-                                        output += ',,,,,,,,,';
+                                        output += ',,,,,,,,,,';
                                     }
 
                                     // Agent information
@@ -5266,7 +5296,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
 
                         // Perform email invitation
                         if ((command.emailInvitation == true) && (command.emailVerified == true) && command.email && domain.mailserver) {
-                            domain.mailserver.sendAccountInviteMail(newuserdomain, (user.realname ? user.realname : user.name), newusername, command.email.toLowerCase(), command.pass, parent.getLanguageCodes(req));
+                            domain.mailserver.sendAccountInviteMail(newuserdomain, (user.realname ? user.realname : user.name), newusername, command.email.toLowerCase(), command.pass, parent.getLanguageCodes(req), req.query.key);
                         }
 
                         // Log in the auth log
@@ -5505,7 +5535,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
                     if (parent.parent.authlog) { parent.parent.authLog('https', 'User ' + user.name + ' changed email from ' + oldemail + ' to ' + user.email); }
 
                     // Send the verification email
-                    if (domain.mailserver != null) { domain.mailserver.sendAccountCheckMail(domain, user.name, user._id, user.email, parent.getLanguageCodes(req)); }
+                    if (domain.mailserver != null) { domain.mailserver.sendAccountCheckMail(domain, user.name, user._id, user.email, parent.getLanguageCodes(req), req.query.key); }
                 }
             });
         }
@@ -6052,18 +6082,27 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
     }
 
     function serverCommandReport(command) {
-        if (common.validateInt(command.type, 1, 2) == false) return; // Validate type
+        if (common.validateInt(command.type, 1, 3) == false) return; // Validate type
         if (common.validateInt(command.groupBy, 1, 3) == false) return; // Validate groupBy: 1 = User, 2 = Device, 3 = Day
         if ((typeof command.start != 'number') || (typeof command.end != 'number') || (command.start >= command.end)) return; // Validate start and end time
         const manageAllDeviceGroups = ((user.siteadmin == 0xFFFFFFFF) && (parent.parent.config.settings.managealldevicegroups.indexOf(user._id) >= 0));
         if ((command.devGroup != null) && (manageAllDeviceGroups == false) && ((user.links == null) || (user.links[command.devGroup] == null))) return; // Asking for a device group that is not allowed
 
         const msgIdFilter = [5, 10, 11, 12, 122, 123, 124, 125, 126];
-
-        if (command.type == 1)
-            remoteSessionReport(command, manageAllDeviceGroups, msgIdFilter);
-        if (command.type == 2)
-            trafficUsageReport(command, msgIdFilter);
+        switch (command.type) {
+            case 1: {
+                remoteSessionReport(command, manageAllDeviceGroups, msgIdFilter);
+                break;
+            }
+            case 2: {
+                trafficUsageReport(command, msgIdFilter);
+                break;
+            }
+            case 3: {
+                userLoginReport(command);
+                break;
+            }   
+        }
     }
 
     function serverCommandServerClearErrorLog(command) {
@@ -6268,7 +6307,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
 
         if ((domain.mailserver != null) && (obj.user.email.toLowerCase() == command.email)) {
             // Send the verification email
-            domain.mailserver.sendAccountCheckMail(domain, user.name, user._id, user.email, parent.getLanguageCodes(req));
+            domain.mailserver.sendAccountCheckMail(domain, user.name, user._id, user.email, parent.getLanguageCodes(req), req.query.key);
         }
     }
 
@@ -7077,7 +7116,7 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
 
                 // Fetch or create the user entry
                 var userEntry = userEntries[docs[i].userid];
-                if (userEntry == null) { userEntry = { userid: docs[i].userid, length: 0, bytesin: 0, bytesout: 0}; }
+                if (userEntry == null) { userEntry = { userid: docs[i].userid, length: 0, bytesin: 0, bytesout: 0 }; }
                 if (docs[i].bytesin) { userEntry.bytesin += docs[i].bytesin; }
                 if (docs[i].bytesout) { userEntry.bytesout += docs[i].bytesout; }
 
@@ -7096,6 +7135,62 @@ module.exports.CreateMeshUser = function (parent, db, ws, req, args, domain, use
             try { ws.send(JSON.stringify({ action: 'report', data: data })); } catch (ex) { }
         });
     }
+
+
+    function userLoginReport(command) {
+        // If we are not user administrator on this site, only search for events with our own user id.
+        var ids = [user._id]; // If we are nto user administrator, only count our own traffic.
+        if ((user.siteadmin & SITERIGHT_MANAGEUSERS) != 0) { ids = ['*']; } // If user administrator, count traffic of all users.
+
+        var showInvalidLoginAttempts = true;
+
+        // Get the events in the time range
+        // MySQL or MariaDB query will ignore the MsgID filter.
+        var msgIdFilter = [107];
+        if (showInvalidLoginAttempts) { msgIdFilter = [107, 108, 109, 110]; } // Includes invalid login attempts
+
+        db.GetEventsTimeRange(ids, domain.id, msgIdFilter, new Date(command.start * 1000), new Date(command.end * 1000), function (err, docs) {
+            if (err != null) return;
+
+            // Columns
+            var data = { groups: {} };
+            if (command.groupBy == 1) {
+                data.groupFormat = 'user';
+                data.columns = [{ id: 'time', title: "time", format: 'datetime' }, { id: 'ip', title: "ip" }, { id: 'browser', title: "browser" }, { id: 'os', title: "os" }, { id: 'twofactor', title: "twofactor", format: '2fa' }];
+            } else if (command.groupBy == 3) {
+                data.columns = [{ id: 'time', title: "time", format: 'time' }, { id: 'userid', title: "user", format: 'user' }, { id: 'ip', title: "ip" }, { id: 'browser', title: "browser" }, { id: 'os', title: "os" }, { id: 'twofactor', title: "twofactor", format: '2fa' }];
+            }
+            if (showInvalidLoginAttempts) { data.columns.push({ id: 'msg', title: "msg", format: 'msg' }); }
+
+            // Add all log entries
+            var entries = [];
+            for (var i in docs) {
+                // If MySQL or MariaDB query, we can't filter on MsgID, so we have to do it here.
+                if (msgIdFilter.indexOf(docs[i].msgid) < 0) continue;
+
+                if (command.groupBy == 1) { // Add entry per user
+                    if (data.groups[docs[i].userid] == null) { data.groups[docs[i].userid] = { entries: [] }; }
+                    const entry = { time: docs[i].time.valueOf(), ip: docs[i].msgArgs[0], browser: docs[i].msgArgs[1], os: docs[i].msgArgs[2], twofactor: docs[i].twoFactorType ? docs[i].twoFactorType : '' };
+                    if (showInvalidLoginAttempts) { entry.msg = docs[i].msgid }
+                    data.groups[docs[i].userid].entries.push(entry);
+                } else if (command.groupBy == 3) { // Add entry per day
+                    var day;
+                    if ((typeof command.l == 'string') && (typeof command.tz == 'string')) {
+                        day = new Date(docs[i].time).toLocaleDateString(command.l, { timeZone: command.tz });
+                    } else {
+                        day = docs[i].time; // TODO
+                    }
+                    if (data.groups[day] == null) { data.groups[day] = { entries: [] }; }
+                    const entry = { time: docs[i].time.valueOf(), userid: docs[i].userid, ip: docs[i].msgArgs[0], browser: docs[i].msgArgs[1], os: docs[i].msgArgs[2], twofactor: docs[i].twoFactorType ? docs[i].twoFactorType : '' };
+                    if (showInvalidLoginAttempts) { entry.msg = docs[i].msgid }
+                    data.groups[day].entries.push(entry);
+                }
+            }
+
+            try { ws.send(JSON.stringify({ action: 'report', data: data })); } catch (ex) { }
+        });
+    }
+
 
     // Return detailed information about an array of nodeid's
     function getDeviceDetailedInfo(nodeids, type, func) {

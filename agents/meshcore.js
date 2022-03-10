@@ -171,6 +171,12 @@ var agentFileHttpRequests = {}; // Currently active agent HTTPS GET requests fro
 var agentFileHttpPendingRequests = []; // Pending HTTPS GET requests from the server.
 var debugConsole = (global._MSH && (_MSH().debugConsole == 1));
 
+var color_options =
+    {
+        background: (global._MSH != null) ? global._MSH().background : '0,54,105',
+        foreground: (global._MSH != null) ? global._MSH().foreground : '255,255,255'
+    };
+
 if (process.platform == 'win32' && require('user-sessions').isRoot()) {
     // Check the Agent Uninstall MetaData for correctness, as the installer may have written an incorrect value
     try {
@@ -1006,7 +1012,7 @@ function handleServerCommand(data) {
                                 woptions.checkServerIdentity.servertlshash = data.servertlshash;
 
                                 //sendConsoleText(JSON.stringify(woptions));
-                                //sendConsoleText('TUNNEL: ' + JSON.stringify(data));
+                                //sendConsoleText('TUNNEL: ' + JSON.stringify(data, null, 2));
                                 var tunnel = http.request(woptions);
                                 tunnel.upgrade = onTunnelUpgrade;
                                 tunnel.on('error', function (e) { sendConsoleText("ERROR: Unable to connect relay tunnel to: " + this.url + ", " + JSON.stringify(e)); });
@@ -1017,20 +1023,18 @@ function handleServerCommand(data) {
                                 tunnel.privacybartext = data.privacybartext ? data.privacybartext : currentTranslation['privacyBar'];
                                 tunnel.username = data.username + (data.guestname ? (' - ' + data.guestname) : '');
                                 tunnel.realname = (data.realname ? data.realname : data.username) + (data.guestname ? (' - ' + data.guestname) : '');
+                                tunnel.guestuserid = data.guestuserid;
                                 tunnel.guestname = data.guestname;
                                 tunnel.userid = data.userid;
-
-                                if (server_check_consentTimer(tunnel.userid)) {
-                                    sendConsoleText('Deleting Consent Requirement');
-                                    tunnel.consent = (tunnel.consent & -57);
-                                }
-
+                                if (server_check_consentTimer(tunnel.userid)) { tunnel.consent = (tunnel.consent & -57); } // Deleting Consent Requirement
                                 tunnel.desktopviewonly = data.desktopviewonly;
                                 tunnel.remoteaddr = data.remoteaddr;
                                 tunnel.state = 0;
                                 tunnel.url = xurl;
                                 tunnel.protocol = 0;
                                 tunnel.soptions = data.soptions;
+                                tunnel.consentTimeout = (tunnel.soptions && tunnel.soptions.consentTimeout) ? tunnel.soptions.consentTimeout : 30;
+                                tunnel.consentAutoAccept = (tunnel.soptions && (tunnel.soptions.consentAutoAccept === true));
                                 tunnel.tcpaddr = data.tcpaddr;
                                 tunnel.tcpport = data.tcpport;
                                 tunnel.udpaddr = data.udpaddr;
@@ -1089,9 +1093,10 @@ function handleServerCommand(data) {
                                         ipr.title = data.title;
                                         ipr.message = data.msg;
                                         ipr.username = data.username;
+                                        if (data.realname && (data.realname != '')) { ipr.username = data.realname; }
                                         global._clientmessage = ipr.then(function (img)
                                         {
-                                            this.messagebox = require('win-dialog').create(this.title, this.message, this.username, { timeout: 120000, b64Image: img.split(',').pop() }); 
+                                            this.messagebox = require('win-dialog').create(this.title, this.message, this.username, { timeout: 120000, b64Image: img.split(',').pop(), background: color_options.background, foreground: color_options.foreground }); 
                                             this.__childPromise.addMessage = this.messagebox.addMessage.bind(this.messagebox);
                                             return (this.messagebox);
                                         });
@@ -1824,7 +1829,7 @@ function onTunnelUpgrade(response, s, head) {
 // If the HTTP Request has a guest name, we need to form a userid that includes the guest name in hex.
 // This is so we can tell the server that a session is for a given userid/guest sharing pair.
 function getUserIdAndGuestNameFromHttpRequest(request) {
-    if (request.guestname == null) return request.userid; else return request.userid + '/guest:' + Buffer.from(request.guestname).toString('base64');
+    if (request.guestname == null) return request.userid; else return request.guestuserid + '/guest:' + Buffer.from(request.guestname).toString('base64');
 }
 
 // Called when UDP relay data is received // TODO****
@@ -2061,28 +2066,25 @@ function onTunnelData(data) {
                     }
                     if (process.platform == 'win32') {
                         var enhanced = false;
-                        try {
-                            require('win-userconsent');
-                            enhanced = true;
-                        } catch (ex) { }
+                        try { require('win-userconsent'); enhanced = true; } catch (ex) { }
                         if (enhanced) {
                             var ipr = server_getUserImage(this.httprequest.userid);
                             ipr.consentTitle = consentTitle;
                             ipr.consentMessage = consentMessage;
+                            ipr.consentTimeout = this.httprequest.consentTimeout;
+                            ipr.consentAutoAccept = this.httprequest.consentAutoAccept; 
                             ipr.username = this.httprequest.realname;
                             ipr.translations = { Allow: currentTranslation['allow'], Deny: currentTranslation['deny'], Auto: currentTranslation['autoAllowForFive'], Caption: consentMessage };
                             this.httprequest.tpromise._consent = ipr.then(function (img) {
-                                this.consent = require('win-userconsent').create(this.consentTitle, this.consentMessage, this.username, { b64Image: img.split(',').pop(), timeout: 30000, translations: this.translations });
+                                this.consent = require('win-userconsent').create(this.consentTitle, this.consentMessage, this.username, { b64Image: img.split(',').pop(), timeout: this.consentTimeout * 1000, timeoutAutoAccept: this.consentAutoAccept, translations: this.translations, background: color_options.background, foreground: color_options.foreground });
                                 this.__childPromise.close = this.consent.close.bind(this.consent);
                                 return (this.consent);
                             });
+                        } else {
+                            this.httprequest.tpromise._consent = require('message-box').create(consentTitle, consentMessage, this.consentTimeout);
                         }
-                        else {
-                            this.httprequest.tpromise._consent = require('message-box').create(consentTitle, consentMessage, 30);
-                        }
-                    }
-                    else {
-                        this.httprequest.tpromise._consent = require('message-box').create(consentTitle, consentMessage, 30);
+                    } else {
+                        this.httprequest.tpromise._consent = require('message-box').create(consentTitle, consentMessage, this.consentTimeout);
                     }
                     this.httprequest.tpromise._consent.retPromise = this.httprequest.tpromise;
                     this.httprequest.tpromise._consent.then(
@@ -2372,7 +2374,7 @@ function onTunnelData(data) {
                                 this.httprequest.desktop.kvm.users.splice(i, 1);
                                 this.httprequest.desktop.kvm.connectionBar.removeAllListeners('close');
                                 this.httprequest.desktop.kvm.connectionBar.close();
-                                this.httprequest.desktop.kvm.connectionBar = require('notifybar-desktop')(this.httprequest.privacybartext.replace('{0}', this.httprequest.desktop.kvm.rusers.join(', ')).replace('{1}', this.httprequest.desktop.kvm.users.join(', ')), require('MeshAgent')._tsid);
+                                this.httprequest.desktop.kvm.connectionBar = require('notifybar-desktop')(this.httprequest.privacybartext.replace('{0}', this.httprequest.desktop.kvm.rusers.join(', ')).replace('{1}', this.httprequest.desktop.kvm.users.join(', ')), require('MeshAgent')._tsid, color_options);
                                 this.httprequest.desktop.kvm.connectionBar.httprequest = this.httprequest;
                                 this.httprequest.desktop.kvm.connectionBar.on('close', function () {
                                     MeshServerLogEx(29, null, "Remote Desktop Connection forcefully closed by local user (" + this.httprequest.remoteaddr + ")", this.httprequest);
@@ -2421,29 +2423,28 @@ function onTunnelData(data) {
                     var pr;
                     if (process.platform == 'win32') {
                         var enhanced = false;
-                        try {
-                            require('win-userconsent');
-                            enhanced = true;
-                        } catch (ex) { }
+                        try { require('win-userconsent'); enhanced = true; } catch (ex) { }
                         if (enhanced) {
                             var ipr = server_getUserImage(this.httprequest.userid);
                             ipr.consentTitle = consentTitle;
                             ipr.consentMessage = consentMessage;
+                            ipr.consentTimeout = this.httprequest.consentTimeout;
+                            ipr.consentAutoAccept = this.httprequest.consentAutoAccept; 
                             ipr.tsid = tsid;
                             ipr.username = this.httprequest.realname;
                             ipr.translation = { Allow: currentTranslation['allow'], Deny: currentTranslation['deny'], Auto: currentTranslation['autoAllowForFive'], Caption: consentMessage };
                             pr = ipr.then(function (img) {
-                                this.consent = require('win-userconsent').create(this.consentTitle, this.consentMessage, this.username, { b64Image: img.split(',').pop(), uid: this.tsid, timeout: 30000, translations: this.translation });
+                                this.consent = require('win-userconsent').create(this.consentTitle, this.consentMessage, this.username, { b64Image: img.split(',').pop(), uid: this.tsid, timeout: this.consentTimeout * 1000, timeoutAutoAccept: this.consentAutoAccept, translations: this.translation, background: color_options.background, foreground: color_options.foreground });
                                 this.__childPromise.close = this.consent.close.bind(this.consent);
                                 return (this.consent);
                             });
                         }
                         else {
-                            pr = require('message-box').create(consentTitle, consentMessage, 30, null, tsid);
+                            pr = require('message-box').create(consentTitle, consentMessage, this.consentTimeout, null, tsid);
                         }
                     }
                     else {
-                        pr = require('message-box').create(consentTitle, consentMessage, 30, null, tsid);
+                        pr = require('message-box').create(consentTitle, consentMessage, this.consentTimeout, null, tsid);
                     }
                     pr.ws = this;
                     this.pause();
@@ -2478,7 +2479,7 @@ function onTunnelData(data) {
                                     this.ws.httprequest.desktop.kvm.connectionBar.close();
                                 }
                                 try {
-                                    this.ws.httprequest.desktop.kvm.connectionBar = require('notifybar-desktop')(this.ws.httprequest.privacybartext.replace('{0}', this.ws.httprequest.desktop.kvm.rusers.join(', ')).replace('{1}', this.ws.httprequest.desktop.kvm.users.join(', ')), require('MeshAgent')._tsid);
+                                    this.ws.httprequest.desktop.kvm.connectionBar = require('notifybar-desktop')(this.ws.httprequest.privacybartext.replace('{0}', this.ws.httprequest.desktop.kvm.rusers.join(', ')).replace('{1}', this.ws.httprequest.desktop.kvm.users.join(', ')), require('MeshAgent')._tsid, color_options);
                                     MeshServerLogEx(31, null, "Remote Desktop Connection Bar Activated/Updated (" + this.ws.httprequest.remoteaddr + ")", this.ws.httprequest);
                                 } catch (ex) {
                                     if (process.platform != 'darwin') {
@@ -2530,7 +2531,7 @@ function onTunnelData(data) {
                             this.httprequest.desktop.kvm.connectionBar.close();
                         }
                         try {
-                            this.httprequest.desktop.kvm.connectionBar = require('notifybar-desktop')(this.httprequest.privacybartext.replace('{0}', this.httprequest.desktop.kvm.rusers.join(', ')).replace('{1}', this.httprequest.desktop.kvm.users.join(', ')), require('MeshAgent')._tsid);
+                            this.httprequest.desktop.kvm.connectionBar = require('notifybar-desktop')(this.httprequest.privacybartext.replace('{0}', this.httprequest.desktop.kvm.rusers.join(', ')).replace('{1}', this.httprequest.desktop.kvm.users.join(', ')), require('MeshAgent')._tsid, color_options);
                             MeshServerLogEx(31, null, "Remote Desktop Connection Bar Activated/Updated (" + this.httprequest.remoteaddr + ")", this.httprequest);
                         } catch (ex) {
                             MeshServerLogEx(32, null, "Remote Desktop Connection Bar Failed or not Supported (" + this.httprequest.remoteaddr + ")", this.httprequest);
@@ -2605,26 +2606,25 @@ function onTunnelData(data) {
                     var pr;
                     if (process.platform == 'win32') {
                         var enhanced = false;
-                        try {
-                            require('win-userconsent');
-                            enhanced = true;
-                        } catch (ex) { }
+                        try { require('win-userconsent'); enhanced = true; } catch (ex) { }
                         if (enhanced) {
                             var ipr = server_getUserImage(this.httprequest.userid);
                             ipr.consentTitle = consentTitle;
                             ipr.consentMessage = consentMessage;
+                            ipr.consentTimeout = this.httprequest.consentTimeout;
+                            ipr.consentAutoAccept = this.httprequest.consentAutoAccept; 
                             ipr.username = this.httprequest.realname;
                             ipr.translations = { Allow: currentTranslation['allow'], Deny: currentTranslation['deny'], Auto: currentTranslation['autoAllowForFive'], Caption: consentMessage };
                             pr = ipr.then(function (img) {
-                                this.consent = require('win-userconsent').create(this.consentTitle, this.consentMessage, this.username, { b64Image: img.split(',').pop(), timeout: 30000, translations: this.translations });
+                                this.consent = require('win-userconsent').create(this.consentTitle, this.consentMessage, this.username, { b64Image: img.split(',').pop(), timeout: this.consentTimeout * 1000, timeoutAutoAccept: this.consentAutoAccept, translations: this.translations, background: color_options.background, foreground: color_options.foreground });
                                 this.__childPromise.close = this.consent.close.bind(this.consent);
                                 return (this.consent);
                             });
                         } else {
-                            pr = require('message-box').create(consentTitle, consentMessage, 30, null);
+                            pr = require('message-box').create(consentTitle, consentMessage, this.consentTimeout, null);
                         }
                     } else {
-                        pr = require('message-box').create(consentTitle, consentMessage, 30, null);
+                        pr = require('message-box').create(consentTitle, consentMessage, this.consentTimeout, null);
                     }
                     pr.ws = this;
                     this.pause();
