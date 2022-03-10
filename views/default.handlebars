@@ -622,9 +622,21 @@
                     <div class="icon2"></div>
                     <div class="warningbox">Remote computer is not powered on, click here to issue a power command.</div>
                 </div>
+                <div style="position:absolute;right:16px;margin-top:-14px;font-size:x-small;color:black">
+                    <div id="p11capslock" style="display:inline-block;margin-left:1px;border-radius:5px;background-color:#A3FFB8;padding:2px">
+                        CAPS
+                    </div>
+                    <div id="p11scrolllock" style="display:inline-block;margin-left:1px;border-radius:5px;background-color:#A3FFB8;padding:2px">
+                        SCROLL
+                    </div>
+                    <div id="p11numlock" style="display:inline-block;margin-left:1px;border-radius:5px;background-color:#A3FFB8;padding:2px">
+                        NUM
+                    </div>
+                </div>
                 <div id=deskarea0 cellpadding=0 cellspacing=0>
                     <div id=deskarea1 class="areaHead">
                         <div class="toright2">
+                            <div id="idx_deskFullBtn2" onclick=deskToggleFull(event) style="float:right">&nbsp;&#x2716;</div>
                             <span id="p11power"></span>&nbsp;
                             <div class='deskareaicon' title="Toggle View Mode" onclick="toggleAspectRatio(1)">&#8690;</div>
                             <div class='deskareaicon' title="Rotate Left" onclick="drotate(-1)">&olarr;</div>
@@ -637,7 +649,6 @@
                             <div id="desktopCustomUiButtons" style="float:left"></div>
                         </div>
                         <div>
-                            <div id="idx_deskFullBtn2" onclick=deskToggleFull(event)>&nbsp;&#x2716;</div>
                             <input type="button" id="autoconnectbutton1" value="AutoConnect" onclick=autoConnectDesktop(event) onkeypress="return false" onkeydown="return false" style="display:none;margin-right:4px" /><span id=connectbutton1span style="margin-right:4px"><input type=button id=connectbutton1 cmenu="deskConnectButton" value="Connect" onclick=connectDesktop(event,3) onkeypress="return false" onkeydown="return false" disabled="disabled" /></span><span id=connectbutton1hspan style="margin-right:4px"><input type=button id=connectbutton1h value="HW Connect" title="Connect using Intel&reg; AMT hardware KVM" onclick=connectDesktop(event,2) onkeypress="return false" onkeydown="return false" disabled="disabled" /></span><span id=disconnectbutton1span style="margin-right:4px"><input type=button id=disconnectbutton1 cmenu="deskDisconnectButton" value="Disconnect" onclick=connectDesktop(event,0) onkeypress="return false" onkeydown="return false" /></span><span id="deskstatus" style="line-height:22px">Disconnected</span><span id="deskmetadata"></span>
                         </div>
                     </div>
@@ -675,23 +686,24 @@
                     <div id=deskarea4 class="areaFoot">
                         <div class="toright2">
                             <span id="DeskLatency" title="Desktop Session Latency"></span>
-                            <span id="DeskTimer" title="Session time"></span>&nbsp;
-                            <select id=termdisplays style="display:none" onchange=deskSetDisplay(event) onkeypress="return false" onkeydown="return false"></select>&nbsp;
-                            <input id=DeskToolsButton type=button value=Tools title="Toggle tools view" onkeypress="return false" onkeydown="return false" onclick="toggleDeskTools()" />&nbsp;
-                            <span id=DeskChatButton class="deskarea" title="Open chat window to this computer"><img src='images/icon-chat.png' onclick=deviceChat(event) height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskNotifyButton title="Display a notification on the remote computer"><img src='images/icon-notify.png' onclick=deviceToastFunction() height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskLockButton title="Lock the remote computer"><img src='images/icon-lock.png' onclick=deviceLockFunction() height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskOpenWebButton title="Open a web address on the remote computer"><img src='images/icon-url2.png' onclick=deviceUrlFunction() height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskBackgroundButton title="Toggle remote desktop background"><img src='images/icon-background.png' onclick=deviceToggleBackground(event) height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskSaveImageButton title="Save a screenshot of the remote desktop"><img src='images/icon-camera.png' onclick=deskSaveImage() height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskRecordButton cmenu=deskPlayerContextMenu title="Record remote desktop session to file" style="display:none"><img id=DeskRecordButtonImage src='images/icon-film.png' onclick=deskRecordSession() height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskClipboardInButton title="Download remote clipboard to local clipboard" style="display:none"><img id=DeskClipboardInButtonImage src='images/icon-clipboard-in.png' onclick=deskClipboardInFunction() height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskClipboardOutButton title="Upload local clipboard to remote device"><img id=DeskClipboardOutButtonImage src='images/icon-clipboard-out.png' onclick=deskClipboardOutFunction() height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskRefreshButton title="Refresh the desktop"><img id=DeskRefreshButtonImage src='images/icon-refresh.png' onclick=deskRefreshFunction() height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskInputLockedButton title="Remote input is locked"><img id=DeskInputLockedButtonImage src='images/icon-keylock-red.png' onclick=deskInputLockFunction(0) height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskInputUnLockedButton title="Remote input is unlocked"><img id=DeskInputUnLockedButtonImage src='images/icon-keylock.png' onclick=deskInputLockFunction(1) height=16 width=16 style=padding-top:2px /></span>
-                            <span id=DeskGuestShareButton title="Share the device with a guest"><img id=DeskInputUnLockedButtonImage src='images/icon-share2.png' onclick=showShareDevice() height=16 width=16 style=padding-top:2px /></span>
+                            <span id="DeskTimer" title="Session time"></span>
+                            <input id=DeskToolsButton type=button value=Tools title="Toggle tools view" onkeypress="return false" onkeydown="return false" onclick="toggleDeskTools()" />
+                            <span id=DeskChatButton class="deskarea" title="Open chat window to this computer"><img class="desktopButtons" src='images/icon-chat.png' onclick=deviceChat(event) height=16 width=16 style=padding-top:2px /></span>
+                            <span id=DeskNotifyButton title="Display a notification on the remote computer"><img class="desktopButtons" src='images/icon-notify.png' onclick=deviceToastFunction() height=16 width=16 style=padding-top:2px /></span>
+                            <span id=DeskLockButton title="Lock the remote computer"><img src='images/icon-lock.png' class="desktopButtons" onclick=deviceLockFunction() height=16 width=16 /></span>
+                            <span id=DeskOpenWebButton title="Open a web address on the remote computer"><img class="desktopButtons" src='images/icon-url2.png' onclick=deviceUrlFunction() height=16 width=16 /></span>
+                            <span id=DeskBackgroundButton title="Toggle remote desktop background"><img class="desktopButtons" src='images/icon-background.png' onclick=deviceToggleBackground(event) height=16 width=16 /></span>
+                            <span id=DeskSaveImageButton title="Save a screenshot of the remote desktop"><img class="desktopButtons" src='images/icon-camera.png' onclick=deskSaveImage() height=16 width=16 /></span>
+                            <span id=DeskRecordButton cmenu=deskPlayerContextMenu title="Record remote desktop session to file" style="display:none"><img class="desktopButtons" id=DeskRecordButtonImage src='images/icon-film.png' onclick=deskRecordSession() height=16 width=16 /></span>
+                            <span id=DeskClipboardInButton title="Download remote clipboard to local clipboard" style="display:none"><img class="desktopButtons" id=DeskClipboardInButtonImage src='images/icon-clipboard-in.png' onclick=deskClipboardInFunction() height=16 width=16 /></span>
+                            <span id=DeskClipboardOutButton title="Upload local clipboard to remote device"><img class="desktopButtons" id=DeskClipboardOutButtonImage src='images/icon-clipboard-out.png' onclick=deskClipboardOutFunction() height=16 width=16 /></span>
+                            <span id=DeskRefreshButton title="Refresh the desktop"><img class="desktopButtons" id=DeskRefreshButtonImage src='images/icon-refresh.png' onclick=deskRefreshFunction() height=16 width=16 /></span>
+                            <span id=DeskInputLockedButton title="Remote input is locked"><img class="desktopButtons" id=DeskInputLockedButtonImage src='images/icon-keylock-red.png' onclick=deskInputLockFunction(0) height=16 width=16 /></span>
+                            <span id=DeskInputUnLockedButton title="Remote input is unlocked"><img class="desktopButtons" id=DeskInputUnLockedButtonImage src='images/icon-keylock.png' onclick=deskInputLockFunction(1) height=16 width=16 /></span>
+                            <span id=DeskGuestShareButton title="Share the device with a guest"><img class="desktopButtons" id=DeskInputUnLockedButtonImage src='images/icon-share2.png' onclick=showShareDevice() height=16 width=16 /></span>
+
                         </div>
+                        <div class="toright2"><span id=DeskMonitorSelectionSpan></span></div>
                         <div>
                             <select id="deskkeys" cmenu=deskKeyShortcutContextMenu></select>
                             <input id="DeskWD" type=button value="Send" onkeypress="return false" onkeydown="return false" onclick="deskSendKeys()" />
@@ -1343,7 +1355,7 @@
         var webState = '{{{webstate}}}';
         if (webState != '') { webState = JSON.parse(decodeURIComponent(webState)); }
         if ((webState == null) || (typeof webState != 'object')) { webState = {}; }
-        for (var i in webState) { if (i != 'desktopsettings') { localStorage.setItem(i, webState[i]); } }
+        for (var i in webState) { if (i != 'desktopsettings') { try { localStorage.setItem(i, webState[i]); } catch (ex) {} } }
         if (!webState.loctag) { try { delete localStorage.removeItem('loctag'); } catch (ex) { } }
 
         var args, urlargs;
@@ -1655,6 +1667,9 @@
             // Fix links
             if (urlargs.key) { Q('p6backuplink').href += '?key=' + urlargs.key; }
 
+            // Hide night mode button if needed
+            QV('uiViewButton4', (features2 & 0x00300000) == 0);            
+
             // Fix HTML words that in english have two or more meanings
             Q('DeskType').value = multiTranslate("[KeyboardTyping]|Type");
         }
@@ -1933,6 +1948,8 @@
             // Set night mode
             var nNightMode = getstore('nightMode', '0')
             nightMode = false;
+            if ((features2 & 0x00100000) != 0) { nNightMode = '1'; }
+            if ((features2 & 0x00200000) != 0) { nNightMode = '2'; }
             if (nNightMode == '1') { nightMode = true; }
             else if ((nNightMode == '0') && (window.matchMedia)) { nightMode = window.matchMedia('(prefers-color-scheme: dark)').matches }
             if (nightMode) { QC('body').add('night'); QS('body')['background-color'] = '#000'; } else { QC('body').remove('night'); QS('body')['background-color'] = '#d3d9d6'; }
@@ -2126,7 +2143,7 @@
             if (userinfo.otphkeys > 0) { authFactorCount += userinfo.otphkeys; } // FIDO hardware factor
             if ((features & 0x00800000) && (userinfo.otpekey == 1)) { authFactorCount++; } // EMail factor
             if ((features & 0x02000000) && (features & 0x04000000) && (userinfo.phone != null)) { authFactorCount++; } // SMS factor
-            if ((authFactorCount > 0) && (userinfo.otpkeys > 0)) { authFactorCount++; } // Backup keys
+            if ((authFactorCount > 0) && (userinfo.otpkeys > 0) && ((features2 & 0x40000) == 0)) { authFactorCount++; } // Backup keys
             return authFactorCount;
         }
 
@@ -2136,7 +2153,7 @@
             var accountSettingsLocked = ((userinfo.siteadmin != 0xFFFFFFFF) && ((userinfo.siteadmin & 1024) != 0));
             QV('verifyEmailId', (userinfo.emailVerified !== true) && (userinfo.email != null) && (serverinfo.emailcheck == true));
             QV('verifyEmailId2', (userinfo.emailVerified !== true) && (userinfo.email != null) && (serverinfo.emailcheck == true) && (accountSettingsLocked == false));
-            QV('manageOtp', (serverinfo.lock2factor != true) && (authFactorCount > 0));
+            QV('manageOtp', (serverinfo.lock2factor != true) && (authFactorCount > 0) && ((features2 & 0x40000) == 0));
             QV('authPhoneNumberCheck', (userinfo.phone != null));
             QV('authEmailSetupCheck', (userinfo.otpekey == 1) && (userinfo.email != null) && (userinfo.emailVerified == true));
             QV('authAppSetupCheck', userinfo.otpsecret == 1);
@@ -2149,7 +2166,7 @@
             mainUpdate(4 + 128 + 4096);
 
             // Check if none or at least 2 factors are enabled.
-            if ((backupCodesWarningDone == false) && (authFactorCount == 1)) {
+            if ((backupCodesWarningDone == false) && (authFactorCount == 1) && ((features2 & 0x80000) == 0)) {
                 addNotification({ text: "Please add two-factor backup codes. If the current factor is lost, there is no way to recover this account.", title: "Two factor authentication", tag: 'backupcodes' });
                 backupCodesWarningDone = true;
             }
@@ -3738,7 +3755,7 @@
 
         function ondockeypress(e) {
             setSessionActivity();
-            if (!xxdialogMode && xxcurrentView == 11 && desktop && Q('DeskControl').checked) {
+            if (!xxdialogMode && (xxcurrentView == 11) && desktop && Q('DeskControl').checked) {
                 // Check what keys we are allows to send
                 if (currentNode != null) {
                     var meshrights = GetNodeRights(currentNode);
@@ -3749,14 +3766,14 @@
                 }
                 return desktop.m.handleKeys(e);
             }
-            if (!xxdialogMode && xxcurrentView == 12 && terminal && terminal.State == 3 && xterm == null) { return terminal.m.TermHandleKeys(e); }
+            if (!xxdialogMode && (xxcurrentView == 12) && terminal && (terminal.State == 3) && (xterm == null)) { return terminal.m.TermHandleKeys(e); }
             if (!xxdialogMode && ((xxcurrentView == 15) || (xxcurrentView == 115))) return agentConsoleHandleKeys(e);
             if (!xxdialogMode && xxcurrentView == 4) {
-                if (e.ctrlKey == true || e.altKey == true || e.metaKey == true) return;
+                if ((e.ctrlKey == true) || (e.altKey == true) || (e.metaKey == true)) return;
                 var processed = 0;
                 if (e.key) {
-                    if (e.key.length === 1 && userSearchFocus == 0) { Q('UserSearchInput').value = ((Q('UserSearchInput').value + e.key)); processed = 1; }
-                    if (e.keyCode == 8 && userSearchFocus == 0) { var x = Q('UserSearchInput').value; Q('UserSearchInput').value = x.substring(0, x.length - 1); processed = 1; }
+                    if ((e.key.length === 1) && (userSearchFocus == 0)) { Q('UserSearchInput').value = ((Q('UserSearchInput').value + e.key)); processed = 1; }
+                    if ((e.keyCode == 8) && (userSearchFocus == 0)) { var x = Q('UserSearchInput').value; Q('UserSearchInput').value = x.substring(0, x.length - 1); processed = 1; }
                     if (e.keyCode == 27) { Q('UserSearchInput').value = ''; processed = 1; }
                 } else {
                     if (e.charCode != 0 && userSearchFocus == 0) { Q('UserSearchInput').value = ((Q('UserSearchInput').value + String.fromCharCode(e.charCode))); processed = 1; }
@@ -3775,8 +3792,8 @@
             if (Q('viewselect').value < 4) {
                 var processed = 0;
                 if (e.key) {
-                    if (e.key.length === 1 && searchFocus == 0) { Q('KvmSearchInput').value = Q('SearchInput').value = ((Q('SearchInput').value + e.key)); processed = 1; }
-                    if (e.keyCode == 8 && searchFocus == 0) { var x = Q('SearchInput').value; Q('KvmSearchInput').value = Q('SearchInput').value = x.substring(0, x.length - 1); processed = 1; }
+                    if ((e.key.length === 1) && (searchFocus == 0)) { Q('KvmSearchInput').value = Q('SearchInput').value = ((Q('SearchInput').value + e.key)); processed = 1; }
+                    if ((e.keyCode == 8) && (searchFocus == 0)) { var x = Q('SearchInput').value; Q('KvmSearchInput').value = Q('SearchInput').value = x.substring(0, x.length - 1); processed = 1; }
                     if (e.keyCode == 27) { Q('KvmSearchInput').value = Q('SearchInput').value = ''; processed = 1; }
                 } else {
                     if (e.charCode != 0 && searchFocus == 0) { Q('KvmSearchInput').value = Q('SearchInput').value = ((Q('SearchInput').value + String.fromCharCode(e.charCode))); processed = 1; }
@@ -3785,7 +3802,7 @@
             }
             if (Q('viewselect').value == 4) {
                 if (e.key) {
-                    if (e.key.length === 1 && mapSearchFocus == 0) { Q('mapSearchLocation').value = ((Q('mapSearchLocation').value + e.key)); processed = 1; }
+                    if ((e.key.length === 1) && (mapSearchFocus == 0)) { Q('mapSearchLocation').value = ((Q('mapSearchLocation').value + e.key)); processed = 1; }
                     //if (e.keyCode == 8 && mapSearchFocus == 0) { var x = Q('mapSearchLocation').value; Q('mapSearchLocation').value = x.substring(0, x.length - 1); processed = 1; }
                     if (e.keyCode == 27) { Q('mapSearchLocation').value = ''; mapCloseSearchWindow(); processed = 1; }
                     if (e.keyCode == 13) { getSearchLocation(); }
@@ -3797,7 +3814,7 @@
 
         function ondockeydown(e) {
             setSessionActivity();
-            if (!xxdialogMode && xxcurrentView == 11 && desktop && Q('DeskControl').checked) {
+            if (!xxdialogMode && (xxcurrentView == 11) && desktop && Q('DeskControl').checked) {
                 // Check what keys we are allows to send
                 if (currentNode != null) {
                     var meshrights = GetNodeRights(currentNode);
@@ -3808,30 +3825,30 @@
                 }
                 return desktop.m.handleKeyDown(e);
             }
-            if (!xxdialogMode && xxcurrentView == 12 && terminal && terminal.State == 3 && xterm == null) { terminal.m.TermHandleKeyDown(e); if ((e.keyCode >= 37) && (e.keyCode <= 40)) { haltEvent(e); } }
-            if (!xxdialogMode && xxcurrentView == 13 && e.keyCode == 116 && p13filetree != null) { haltEvent(e); return false; } // F5 Refresh on files
+            if (!xxdialogMode && (xxcurrentView == 12) && terminal && (terminal.State == 3) && xterm == null) { terminal.m.TermHandleKeyDown(e); if ((e.keyCode >= 37) && (e.keyCode <= 40)) { haltEvent(e); } }
+            if (!xxdialogMode && (xxcurrentView == 13) && (e.keyCode == 116) && (p13filetree != null)) { haltEvent(e); return false; } // F5 Refresh on files
             if (!xxdialogMode && ((xxcurrentView == 15) || (xxcurrentView == 115))) { return agentConsoleHandleKeys(e); }
-            if (!xxdialogMode && xxcurrentView == 4) {
-                if (e.keyCode === 8 && userSearchFocus == 0) { var x = Q('UserSearchInput').value; Q('UserSearchInput').value = (x.substring(0, x.length - 1)); processed = 1; }
+            if (!xxdialogMode && (xxcurrentView == 4)) {
+                if ((e.keyCode === 8) && (userSearchFocus == 0)) { var x = Q('UserSearchInput').value; Q('UserSearchInput').value = (x.substring(0, x.length - 1)); processed = 1; }
                 if (e.keyCode === 27) { Q('UserSearchInput').value = ''; processed = 1; }
                 if (processed > 0) { if (processed == 1) { mainUpdate(5); } return haltEvent(e); }
             }
-            if (xxdialogMode || xxcurrentView != 1 || e.ctrlKey == true || e.altKey == true || e.metaKey == true) return;
+            if (xxdialogMode || (xxcurrentView != 1) || (e.ctrlKey == true) || (e.altKey == true) || (e.metaKey == true)) return;
             var processed = 0;
             if (Q('viewselect').value < 4) {
-                if (e.keyCode === 8 && searchFocus == 0) { var x = Q('SearchInput').value; Q('KvmSearchInput').value = Q('SearchInput').value = (x.substring(0, x.length - 1)); processed = 1; }
+                if ((e.keyCode === 8) && (searchFocus == 0)) { var x = Q('SearchInput').value; Q('KvmSearchInput').value = Q('SearchInput').value = (x.substring(0, x.length - 1)); processed = 1; }
                 if (e.keyCode === 27) { Q('KvmSearchInput').value = Q('SearchInput').value = ''; processed = 1; }
                 if (processed > 0) { if (processed == 1) { mainUpdate(5); } return haltEvent(e); }
             }
             if (Q('viewselect').value == 4) {
-                if (e.keyCode === 8 && mapSearchFocus == 0) { var x = Q('mapSearchLocation').value; Q('mapSearchLocation').value = (x.substring(0, x.length - 1)); processed = 1; }
+                if ((e.keyCode === 8) && (mapSearchFocus == 0)) { var x = Q('mapSearchLocation').value; Q('mapSearchLocation').value = (x.substring(0, x.length - 1)); processed = 1; }
                 if (e.keyCode === 27) { Q('mapSearchLocation').value = ''; mapCloseSearchWindow(); processed = 1; }
             }
         }
 
         function ondockeyup(e) {
             setSessionActivity();
-            if (!xxdialogMode && xxcurrentView == 11 && desktop && Q('DeskControl').checked) {
+            if (!xxdialogMode && (xxcurrentView == 11) && desktop && Q('DeskControl').checked) {
                 // Check what keys we are allows to send
                 if (currentNode != null) {
                     var meshrights = GetNodeRights(currentNode);
@@ -3842,14 +3859,14 @@
                 }
                 return desktop.m.handleKeyUp(e);
             }
-            if (!xxdialogMode && xxcurrentView == 12 && terminal && terminal.State == 3 && xterm == null) { return terminal.m.TermHandleKeyUp(e); }
-            if (!xxdialogMode && xxcurrentView == 13 && e.keyCode == 116 && p13filetree != null) { p13folderup(9999); haltEvent(e); return false; } // F5 Refresh on files
-            if (!xxdialogMode && xxcurrentView == 4) { if ((e.keyCode === 8 && searchFocus == 0) || e.keyCode === 27) { return haltEvent(e); } }
-            if (xxdialogMode && e.keyCode == 27) { dialogclose(0); }
+            if (!xxdialogMode && (xxcurrentView == 12) && terminal && (terminal.State == 3) && xterm == null) { return terminal.m.TermHandleKeyUp(e); }
+            if (!xxdialogMode && (xxcurrentView == 13) && (e.keyCode == 116) && (p13filetree != null)) { p13folderup(9999); haltEvent(e); return false; } // F5 Refresh on files
+            if (!xxdialogMode && (xxcurrentView == 4)) { if (((e.keyCode === 8) && (searchFocus == 0)) || e.keyCode === 27) { return haltEvent(e); } }
+            if (xxdialogMode && (e.keyCode == 27)) { dialogclose(0); }
             if ((e.shiftKey == true) && (e.keyCode == 27)) { dialogclose(0); Q('KvmSearchInput').value = Q('SearchInput').value = ''; mainUpdate(5); if (desktop != null) { connectDesktop(); } if (terminal != null) { connectTerminal(); } if (files != null) { connectFiles(); } go(1); return; } // Shift-ESC: Reset the web page
-            if (xxdialogMode || xxcurrentView != 0 || e.ctrlKey == true || e.altKey == true || e.metaKey == true) return;
-            if (Q('viewselect').value < 4) { if ((e.keyCode === 8 && searchFocus == 0) || e.keyCode === 27) { return haltEvent(e); } }
-            if (Q('viewselect').value == 4) { if ((e.keyCode === 8 && mapSearchFocus == 0) || e.keyCode === 27) { return haltEvent(e); } }
+            if (xxdialogMode || xxcurrentView != 0 || e.ctrlKey == true || (e.altKey == true) || (e.metaKey == true)) return;
+            if (Q('viewselect').value < 4) { if (((e.keyCode === 8) && (searchFocus == 0)) || (e.keyCode === 27)) { return haltEvent(e); } }
+            if (Q('viewselect').value == 4) { if (((e.keyCode === 8) && (mapSearchFocus == 0)) || (e.keyCode === 27)) { return haltEvent(e); } }
         }
 
         //function ondocfocus() { }
@@ -4054,7 +4071,7 @@
                             }
                         } else {
                             // If sorted by "Groups-Tags" and a device has no tags, put in a group only section.
-                            if ((sort == 4) && ((node.tags == null) || (node.tags.length == 0))) {
+                            if ((sort == 4) && (mesh2 != null) && ((node.tags == null) || (node.tags.length == 0))) {
                                 var tag = mesh2.name;
                                 var collapsed = CollapsedGroups['tag:' + encodeURIComponentEx(tag)];
                                 var r2 = r.replace('**xx**xx*TaG*xx**xx**', encodeURIComponentEx(tag) + (collapsed?' style=display:none':''));
@@ -4242,6 +4259,7 @@
                                 desktop.shortid = shortid;
                                 desktop.onStateChanged = onMultiDesktopStateChange;
                                 desktop.m.onRemoteInputLockChanged = null;
+                                desktop.m.onKeyboardStateChanged = null;
                                 multiDesktop[id] = desktop;
                                 desktop = desktopNode = currentNode = null;
                                 // Setup a replacement desktop
@@ -4491,7 +4509,7 @@
                             var r = serverinfo.devicemeshrouterlinks.extralinks[i], p = 0;
                             if (doesDeviceMatchFilterTags(node, r.filter)) {
                                 if (typeof r.protocol == 'number') { p = r.protocol; } else if (r.protocol == 'http') { p = 1; } else if (r.protocol == 'https') { p = 2; } else if (r.protocol == 'rdp') { p = 3; } else if (r.protocol == 'ssh') { p = 4; } else if (r.protocol == 'scp') { p = 5; } else if (r.protocol == 'mcrdesktop') { p = 6; } else if (r.protocol == 'mcrfiles') { p = 7; }
-                                x += '<a href=# onclick=p10MCRouter("' + node._id + '",' + p + ',' + r.port + (r.ip?(',\"' + r.ip + '\"'):'') + ')>' + r.name + '</a>&nbsp;';
+                                x += '<a href=# onclick=p10MCRouter("' + node._id + '",' + p + ',' + r.port + (r.ip?(',\"' + r.ip + '\"'):',null') + ',' + (r.localport?r.localport:0) + ')>' + r.name + '</a>&nbsp;';
                             }
                         }
                     }
@@ -4735,6 +4753,7 @@
                 } else if (contype == 1) {
                     // Setup the Mesh Agent remote desktop
                     desk = CreateAgentRedirect(meshserver, CreateAgentRemoteDesktop('kvmid_' + shortid), serverPublicNamePort, authCookie, authRelayCookie, domainUrl);
+                    desk.m.UseExtendedKeyFlag = (node.agent.id < 5); // Only use extended keys on Windows agents for now
                     desk.m.mouseCursorActive(xxcurrentView == 11);
                     desk.shortid = shortid;
                     desk.attemptWebRTC = attemptWebRTC;
@@ -4957,17 +4976,22 @@
                 x += '<div id=emailInviteDiv style=display:none>' + format("Invite someone to install the mesh agent. An email with be sent with the link to the mesh agent installation for the \"{0}\" device group.", EscapeHtml(mesh.name)) + '<br /><br />';
                 x += addHtmlValue("Name (optional)", '<input id=agentInviteName value="" style=width:230px maxlength=64 />');
                 x += addHtmlValue("Email", '<input id=agentInviteEmail style=width:230px placeholder="' + "example@email.com" + '" onkeyup=validateAgentInvite()></input>');
-                x += addHtmlValue("Operating System", '<select id=agentInviteNameOs onchange=d2ChangedInviteType() style=width:236px><option value=4>' + "Send installation link" + '</option><option value=0 selected>' + "Any supported" + '</option><option value=1>' + "Windows only" + '</option><option value=3>' + "Apple macOS only" + '</option><option value=2>' + "Linux only" + '</option></select>');
+                x += addHtmlValue("Operating System", '<select id=agentInviteNameOs onchange=d2ChangedInviteType() style=width:236px><option value=4>' + "Send installation link" + '</option><option value=0 selected>' + "Any supported" + '</option><option value=1>' + "Windows only" + '</option><option value=3>' + "Apple macOS only" + '</option><option value=2>' + "Linux only" + '</option><option value=5>' + "MeshCentral Assistant" + '</option></select>');
                 x += '<div id=d2agentexpirediv>';
                 x += addHtmlValue("Link Expiration", '<select id=agentInviteExpire style=width:236px><option value=1>' + "1 hour" + '</option><option value=8>' + "8 hours" + '</option><option value=24>' + "1 day" + '</option><option value=168>' + "1 week" + '</option><option value=5040>' + "1 month" + '</option><option value=0>' + "Unlimited" + '</option></select>');
                 x += '</div>';
+                x += '<div id=d2agentInstallTypeDiv2>';
                 x += addHtmlValue("Installation Type", '<select id=agentInviteType style=width:236px><option value=0>' + "Background and interactive" + '</option><option value=2>' + "Background only" + '</option><option value=1>' + "Interactive only" + '</option></select>');
+                x += '</div>';
                 x += addHtmlValue("Message" + '<br />' + "(optional)", '<textarea id=agentInviteMessage value="" style=width:230px;height:100px;resize:none maxlength=1024 /></textarea>');
                 x += '</div>';
             }
             x += '<div id=urlInviteDiv>' + format("Invite someone to install the mesh agent by sharing an invitation link. This link points the user to installation instructions for the \"{0}\" device group. The link is public and no account for this server is needed.", EscapeHtml(mesh.name)) + '<br /><br />';
             x += addHtmlValue("Link Expiration", '<select id=d2inviteExpire style=width:236px onchange=d2RequestInvitationLink()><option value=1>' + "1 hour" + '</option><option value=8>' + "8 hours" + '</option><option value=24>' + "1 day" + '</option><option value=168>' + "1 week" + '</option><option value=5040>' + "1 month" + '</option><option value=0>' + "Unlimited" + '</option></select>');
+            x += addHtmlValue("Agents", '<select id=d2agentType style=width:236px onchange=d2ChangedInviteType()><option value=0>' + "All Available Agents" + '</option><option value=1>' + "Windows MeshAgent" + '</option><option value=2>' + "Linux MeshAgent" + '</option><option value=4>' + "MacOS MeshAgent" + '</option><option value=8>' + "MeshCentral Assistant" + '</option></select>');
+            x += '<div id=d2agentInstallTypeDiv>';
             x += addHtmlValue("Installation Type", '<select id=d2agentInviteType style=width:236px onchange=d2RequestInvitationLink()><option value=0>' + "Background and interactive" + '</option><option value=2>' + "Background only" + '</option><option value=1>' + "Interactive only" + '</option></select>');
+            x += '</div>';
             x += '<div id=agentInvitationLinkDiv style="text-align:center;font-size:large;margin:16px;display:none"><a href=# id=agentInvitationLink rel="noreferrer noopener" target="_blank" style=cursor:pointer></a> <img src=images/link4.png height=10 width=10 title="' + "Copy link to clipboard" + '" style=cursor:pointer onclick=d2CopyInviteToClip()></div></div>';
             setDialogMode(2, "Invite", 3, performAgentInvite, x, meshid);
             if (features & 64) { Q('d2InviteType').focus(); d2ChangedInviteType(); } else { Q('d2inviteExpire').focus(); validateAgentInvite(); }
@@ -4976,14 +5000,19 @@
         }
 
         function d2RequestInvitationLink() {
-            meshserver.send({ action: 'createInviteLink', meshid: xxdialogTag, expire: parseInt(Q('d2inviteExpire').value), flags: parseInt(Q('d2agentInviteType').value) });
+            meshserver.send({ action: 'createInviteLink', meshid: xxdialogTag, expire: parseInt(Q('d2inviteExpire').value), flags: parseInt(Q('d2agentInviteType').value), agents: parseInt(Q('d2agentType').value) });
         }
 
         function d2ChangedInviteType() {
-            QV('urlInviteDiv', Q('d2InviteType').value == 0);
-            QV('d2agentexpirediv', Q('agentInviteNameOs').value == 4);
-            QV('emailInviteDiv', Q('d2InviteType').value == 1);
+            if (features & 64) {
+                QV('urlInviteDiv', Q('d2InviteType').value == 0);
+                QV('d2agentexpirediv', Q('agentInviteNameOs').value == 4);
+                QV('d2agentInstallTypeDiv2', Q('agentInviteNameOs').value < 2);
+                QV('emailInviteDiv', Q('d2InviteType').value == 1);
+            }
+            QV('d2agentInstallTypeDiv', parseInt(Q('d2agentType').value) < 2);
             validateAgentInvite();
+            d2RequestInvitationLink();
         }
 
         function d2CopyInviteToClip() { copyTextToClip(Q('agentInvitationLink').href); }
@@ -7421,8 +7450,8 @@
             var url = serverinfo.altmessenging[i].url.split('{0}').join(currentNode._id.split('/').join('-'));
             var localurl = url;
             if (typeof serverinfo.altmessenging[i].localurl == 'string') { localurl = serverinfo.altmessenging[i].localurl.split('{0}').join(currentNode._id.split('/').join('-')); }
-            meshserver.send({ action: 'msg', type: 'openUrl', nodeid: currentNode._id, url: url });
-            safeNewWindow(localurl, 'altmessenger:' + currentNode._id, 'directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no,width=400,height=560');
+            if (url != '') { meshserver.send({ action: 'msg', type: 'openUrl', nodeid: currentNode._id, url: url }); }
+            if (localurl != '') { safeNewWindow(localurl, 'altmessenger:' + currentNode._id, 'directories=no,titlebar=no,toolbar=no,location=no,status=no,menubar=no,scrollbars=no,resizable=no,width=400,height=560'); }
         }
 
         function deviceToggleBackground() {
@@ -8169,6 +8198,11 @@
                     QV('DeskInputLockedButton', desktop.m.RemoteInputLock === 1);
                     QV('DeskInputUnLockedButton', desktop.m.RemoteInputLock === 0);
                     desktop.m.onRemoteInputLockChanged = function(obj, state) { QV('DeskInputLockedButton', state); QV('DeskInputUnLockedButton', !state); }
+                    desktop.m.onKeyboardStateChanged = function(obj, state) {
+                        QS('p11numlock').display = ((state & 1) ? 'inline-block' : 'none');
+                        QS('p11scrolllock').display = ((state & 2) ? 'inline-block' : 'none');
+                        QS('p11capslock').display = ((state & 4) ? 'inline-block' : 'none');
+                    }
                     desktopNode = currentNode;
                     onDesktopStateChange(desktop, desktop.State);
                     delete multiDesktop[currentNode._id];
@@ -8247,7 +8281,13 @@
             QV('d7deskAutoClipboardLabel', (navigator.clipboard.readText != null) && ((features2 & 0x1000) == 0));
             QV('DeskClipboardInButton', online && inputAllowed && ((features2 & 0x0800) == 0) && (navigator.clipboard != null) && (navigator.clipboard.writeText != null) && ((desktopsettings.autoclipboard != true) || (navigator.clipboard == null) || (navigator.clipboard.readText == null)));
 
-            if (deskState != 3) { QV('DeskInputLockedButton', false); QV('DeskInputUnLockedButton', false); }
+            if (deskState != 3) {
+                QV('DeskInputLockedButton', false);
+                QV('DeskInputUnLockedButton', false);
+                QV('p11numlock', false);
+                QV('p11scrolllock', false);
+                QV('p11capslock', false);
+            }
 
             // Display this only if we have Chat & Notify permissions
             QV('DeskSaveImageButton', (deskState == 3) && (Q('Desk')['toBlob'] != null) && ((features2 & 0x400) == 0));
@@ -8377,6 +8417,7 @@
                 } else if ((contype == null) || (contype == 1) || ((contype == 3) && (currentNode.agent.id > 4))) {
                     // Setup the Mesh Agent remote desktop
                     desktop = CreateAgentRedirect(meshserver, CreateAgentRemoteDesktop('Desk'), serverPublicNamePort, authCookie, authRelayCookie, domainUrl);
+                    desktop.m.UseExtendedKeyFlag = (desktopNode.agent.id < 5); // Only use extended keys on Windows agents for now
                     desktop.m.mouseCursorActive(xxcurrentView == 11);
                     desktop.debugmode = debugmode;
                     desktop.m.debugmode = debugmode;
@@ -8388,6 +8429,11 @@
                     desktop.onStateChanged = onDesktopStateChange;
                     if ((features2 & 0x2000) != 0) desktop.m.stopInput = true;
                     desktop.m.onRemoteInputLockChanged = function(obj, state) { QV('DeskInputLockedButton', state); QV('DeskInputUnLockedButton', !state); }
+                    desktop.m.onKeyboardStateChanged = function(obj, state) {
+                        QS('p11numlock').display = ((state & 1) ? 'inline-block' : 'none');
+                        QS('p11scrolllock').display = ((state & 2) ? 'inline-block' : 'none');
+                        QS('p11capslock').display = ((state & 4) ? 'inline-block' : 'none');
+                    }
                     desktop.onConsoleMessageChange = function () {
                         if (desktop.consoleMessage) {
                             Q('p11DeskConsoleMsg').innerHTML += formatAgentConsoleMessage(desktop.consoleMessage, desktop.consoleMessageId, desktop.consoleMessageArgs);
@@ -8516,7 +8562,7 @@
                     desktop.Stop();
                     desktopNode = desktop = null;
                     QV('DeskFocus', false);
-                    QV('termdisplays', false);
+                    QV('DeskMonitorSelectionSpan', false);
                     QV('deskRecordIcon', false);
                     QV('DeskInputLockedButton', false);
                     QV('DeskInputUnLockedButton', false);
@@ -9084,8 +9130,8 @@
             if (xxdialogMode || desktop == null || desktop.State != 3) return;
             Q('DeskClip').blur();
             var x = '';
-            if ((features2 & 0x0800) == 0) x += '<input id=dlgClipGet type=button value="' + "Get Clipboard" + '" style=width:120px onclick=showDeskClipGet()>';
-            if ((features2 & 0x1000) == 0) x += '<input id=dlgClipSet type=button value="' + "Set Clipboard" + '" style=width:120px onclick=showDeskClipSet()>';
+            if ((features2 & 0x0800) == 0) x += '<input id=dlgClipGet type=button value="' + "Get Clipboard" + '" style=width:160px onclick=showDeskClipGet()>';
+            if ((features2 & 0x1000) == 0) x += '<input id=dlgClipSet type=button value="' + "Set Clipboard" + '" style=width:160px onclick=showDeskClipSet()>';
             x += '<div id=dlgClipStatus style="display:inline-block;margin-left:8px" ></div>';
             x += '<textarea id=d2clipText style="width:100%;height:184px;resize:none" maxlength=65535></textarea>';
             x += '<input type=button value="Close" style=width:80px;float:right onclick=dialogclose(0)><div style=height:26px;margin-top:3px><span id=linuxClipWarn style=display:none>' + "Remote clipboard is valid for 60 seconds." + '</span>&nbsp;</div><div></div>';
@@ -9278,20 +9324,20 @@
             var displayCount = 0, displaySelector = '';
             for (var i in displays) {
                 displayCount++;
-                var str = displays[i];
-                if (str == 'All Displays') { str = "All Displays"; } // Language translation
+                var str = displays[i], allDisplays = 1;
+                if (str == 'All Displays') { str = "All Displays"; allDisplays = 2; } // Language translation
                 if (str.startsWith('Display ')) { str = format("Display {0}", str.substring(8)); } // Language translation
-                displaySelector += '<option' + ((selDisplay == i) ? ' selected' : '') + ' value=' + i + '>' + str + '</option>';
+                displaySelector += '<img id=DeskMonitorSelectionX' + i + ' class="' + ((selDisplay == i) ? '' : ' gray') + '" src=\'images/icon-monitor' + allDisplays + '.png\' title="' + EscapeHtml(str) + '" onclick=deskSetDisplay(' + i + ') height=16 width=16 style=padding-top:2px;margin-left:2px />';
                 if ((deskPreferedStickyDisplay == i) && (selDisplay != deskPreferedStickyDisplay)) { desktop.m.SetDisplay(i); }
                 deskPreferedStickyDisplay = -1;
             }
-            QH('termdisplays', displaySelector);
-            QV('termdisplays', displayCount > 1);
+            QH('DeskMonitorSelectionSpan', displaySelector);
+            QV('DeskMonitorSelectionSpan', displayCount > 1);
         }
 
         function deskGetDisplayNumbers(e) { desktop.m.GetDisplayNumbers(); }
         var deskPreferedStickyDisplay = -1;
-        function deskSetDisplay(e) { desktop.m.SetDisplay(deskPreferedStickyDisplay = parseInt(Q('termdisplays').value)); Q('termdisplays').blur(); }
+        function deskSetDisplay(v) { desktop.m.SetDisplay(deskPreferedStickyDisplay = parseInt(v)); }
 
         // Double click detection. This is important for macOS.
         var dblClickDetectArgs = { t:0, x:0, y:0 };
@@ -11376,7 +11422,7 @@
         function account_createLoginToken() {
             if (xxdialogMode) return false;
             var y = '', x = "Create a temporary username and password that can be used as alternative login to your account. This is useful for allowing tools or other services to access your account." + '<br /><br />';
-            var options = { 0 : "Unlimited", 1 : "1 minute", 5 : "5 minutes", 10 : "10 minutes", 15 : "15 minutes", 30 : "30 minutes", 45 : "45 minutes", 60 : "60 minutes", 120 : "2 hours", 240 : "4 hours", 480 : "8 hours", 720 : "12 hours", 960 : "16 hours", 1440 : "24 hours", 2880 : "2 days", 5760 : "4 days" }
+            var options = { 0 : "Unlimited", 1 : "1 minute", 5 : "5 minutes", 10 : "10 minutes", 15 : "15 minutes", 30 : "30 minutes", 45 : "45 minutes", 60 : "60 minutes", 120 : "2 hours", 240 : "4 hours", 480 : "8 hours", 720 : "12 hours", 960 : "16 hours", 1440 : "24 hours", 2880 : "2 days", 5760 : "4 days", 10080 : "7 days" }
             for (var i in options) { y += '<option value=' + i + '>' + options[i] + '</option>'; }
             x += addHtmlValue("Token Name", '<input class=boxsize id=d2tokenName style=width:250px maxlength=100 type=text onchange=account_createLoginTokenValidate() onkeyup=account_createLoginTokenValidate() />');
             x += addHtmlValue("Expire Time", '<select class=boxsize id=d2tokenExpire style=width:250px>' + y + '</select>');
@@ -12778,11 +12824,15 @@
                 x += '<div style=width:100%;text-align:center><a rel="noreferrer noopener" target=_blank href="' + url + '">' + url + '</a></div><br />';
                 x += '<div style=margin-bottom:5px><label><input id=agentJoinCheck type=checkbox onclick=p20editmeshInviteCodeValidate() />' + "Enable Invite Codes" + '</label></div>';
                 x += addHtmlValue("Invite Codes", '<input id=agentInviteCode style=width:236px onkeyup=p20editmeshInviteCodeValidate() placeholder="code1, code2, code3" />');
+                x += addHtmlValue("Agents", '<select id=agentType style=width:236px onchange=p20editmeshInviteCodeValidate()><option value=0>' + "All Available Agents" + '</option><option value=1>' + "Windows MeshAgent" + '</option><option value=2>' + "Linux MeshAgent" + '</option><option value=4>' + "MacOS MeshAgent" + '</option><option value=8>' + "MeshCentral Assistant" + '</option></select>');
+                x += '<div id=d2agentInstallTypeDiv>';
                 x += addHtmlValue("Installation Type", '<select id=agentInviteType style=width:236px><option value=0>' + "Background and interactive" + '</option><option value=2>' + "Background only" + '</option><option value=1>' + "Interactive only" + '</option></select>');
+                x += '</div>';
                 setDialogMode(2, "Invite Codes", 3, p20editmeshInviteCodeEx, x);
                 if (currentMesh.invite != null) {
                     Q('agentJoinCheck').checked = true;
                     Q('agentInviteCode').value = currentMesh.invite.codes.join(', ');
+                    if (currentMesh.invite.ag) { Q('agentType').value = currentMesh.invite.ag; }
                     Q('agentInviteType').value = (currentMesh.invite.flags & 3);
                 }
                 p20editmeshInviteCodeValidate();
@@ -12800,15 +12850,17 @@
             var ok = true, codes = Q('agentInviteCode').value.split(',');
             for (var i in codes) { codes[i] = codes[i].trim(); if (codes[i] == '') { ok = false; } }
             QE('agentInviteCode', Q('agentJoinCheck').checked);
+            QE('agentType', Q('agentJoinCheck').checked);
             QE('agentInviteType', Q('agentJoinCheck').checked);
             QE('idx_dlgOkButton', (Q('agentJoinCheck').checked == false) || (ok));
+            QV('d2agentInstallTypeDiv', parseInt(Q('agentType').value) < 2);
         }
 
         function p20editmeshInviteCodeEx() {
             if (Q('agentJoinCheck').checked == true) {
                 var codes = Q('agentInviteCode').value.split(',');
                 for (var i in codes) { codes[i] = codes[i].trim(); }
-                meshserver.send({ action: 'editmesh', meshid: currentMesh._id, invite: { codes: codes, flags: parseInt(Q('agentInviteType').value) } });
+                meshserver.send({ action: 'editmesh', meshid: currentMesh._id, invite: { codes: codes, flags: parseInt(Q('agentInviteType').value), ag: parseInt(Q('agentType').value) } });
             } else {
                 meshserver.send({ action: 'editmesh', meshid: currentMesh._id, invite: '*' });
             }
@@ -13366,11 +13418,11 @@
             1: "Account login",
             2: "Account logout",
             3: "Changed language from {1} to {2}",
-            4: "Joined desktop multiplex session",
-            5: "Left the desktop multiplex session",
-            6: "Started desktop multiplex session",
-            7: "Finished recording session, {0} second(s)",
-            8: "Closed desktop multiplex session, {0} second(s)",
+            4: "Joined desktop multiplex session", // No longer in use, replaced with 143
+            5: "Left the desktop multiplex session", // No longer in use, replaced with 144
+            6: "Started desktop multiplex session", // No longer in use, replaced with 145
+            7: "Finished recording session, {0} second(s)", // No longer in use, replaced with 146
+            8: "Closed desktop multiplex session, {0} second(s)", // No longer in use, replaced with 147
             9: "Ended relay session \"{0}\" from {1} to {2}, {3} second(s)",
             10: "Ended terminal session \"{0}\" from {1} to {2}, {3} second(s)",
             11: "Ended desktop session \"{0}\" from {1} to {2}, {3} second(s)",
@@ -13484,10 +13536,10 @@
             119: "This agent is using insecure tunnels, consider updating.",
             120: "Started local relay session \"{0}\", protocol {1} to {2}",
             121: "Ended local relay session \"{0}\", protocol {1} to {2}, {3} second(s)",
-            122: "Left the desktop multiplex session after {0} second(s).",
-            123: "Left Web-SSH session after {0} second(s).",
-            124: "Left Web-SFTP session after {0} second(s).",
-            125: "Left Web-RDP session after {0} second(s).",
+            122: "Left the desktop multiplex session after {0} second(s).", // No longer in use, replaced with 144
+            123: "Left Web-SSH session \"{1}\" after {0} second(s).",
+            124: "Left Web-SFTP session \"{1}\" after {0} second(s).",
+            125: "Left Web-RDP session \"{1}\" after {0} second(s).",
             126: "Left Web-VNC session after {0} second(s).",
             127: "Changed account display name to {0}.",
             128: "Account created, name is {0}.",
@@ -13504,7 +13556,16 @@
             139: "Added device share {0} recurring weekly.",
             140: "Changed device {0} from group {1}: {2}",
             141: "Intel(r) AMT policy change",
-            142: "Device group {0} was changed: {1}"
+            142: "Device group {0} was changed: {1}",
+            143: "Joined desktop multiplex session \"{0}\"",
+            144: "Left the desktop multiplex session \"{0}\" after {1} second(s).",
+            145: "Started desktop multiplex session \"{0}\"",
+            146: "Finished recording session \"{0}\", {1} second(s)",
+            147: "Closed desktop multiplex session \"{0}\", {1} second(s)",
+            148: "Started Web-SSH session \"{0}\".",
+            149: "Started Web-SFTP session \"{0}\".",
+            150: "Started Web-RDP session \"{0}\".",
+            151: "Started Web-VNC session \"{0}\"." // Not in use yet
         };
 
         var eventsShortMessageId = {
@@ -15588,7 +15649,7 @@
             if (xxdialogMode) return;
             var y = '', x = '', settings = JSON.parse(getstore('_ReportSettings', '{}'));
 
-            var options = { 1 : "Remote Sessions", 2 : "User Traffic Usage" }
+            var options = { 1 : "Remote Sessions", 2 : "User Traffic Usage", 3 : "User Logins" }
             for (var i in options) { y += '<option value=' + i + ((settings.type == i)?' selected':'') + '>' + options[i] + '</option>'; }
             x += addHtmlValue("Type", '<select id=d2reportType style=float:right;width:250px onchange=generateReportDialogValidate()>' + y + '</select>');
 
@@ -15597,6 +15658,13 @@
             var options = { 1 : "User", 2: "Device", 3: "Day" }
             for (var i in options) { y += '<option value=' + i + ((settings.groupBy == i)?' selected':'') + '>' + options[i] + '</option>'; }
             x += addHtmlValue("Group by", '<select id=d2groupBy style=float:right;width:250px onchange=generateReportDialogValidate()>' + y + '</select>');
+            x += '</div>';
+
+            x += '<div id=d2GroupByDiv2 style=display:none>';
+            y = '';
+            var options = { 1 : "User", 3: "Day" }
+            for (var i in options) { y += '<option value=' + i + ((settings.groupBy2 == i)?' selected':'') + '>' + options[i] + '</option>'; }
+            x += addHtmlValue("Group by", '<select id=d2groupBy2 style=float:right;width:250px onchange=generateReportDialogValidate()>' + y + '</select>');
             x += '</div>';
 
             x += '<div id=d2DeviceGroupDiv style=display:none>';
@@ -15632,6 +15700,7 @@
         function generateReportDialogValidate() {
             QV('d2timeRangeDiv', Q('d2timeRange').value == 0);
             QV('d2GroupByDiv', Q('d2reportType').value == 1);
+            QV('d2GroupByDiv2', Q('d2reportType').value == 3);
             QV('d2DeviceGroupDiv', Q('d2reportType').value == 1);
             QV('d2showTrafficDiv', Q('d2reportType').value == 1);
         }
@@ -15650,12 +15719,14 @@
             try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch (ex) {}
             var devGroup = decodeURIComponent(Q('d2groupId').value);
             if (devGroup == 0) { devGroup = null; }
-            putstore('_ReportSettings', JSON.stringify({ type: parseInt(Q('d2reportType').value), groupBy: parseInt(Q('d2groupBy').value), timeRange: parseInt(Q('d2timeRange').value), devGroup: devGroup, showTraffic: Q('d2showTraffic').checked }));
-            meshserver.send({ action: 'report', type: parseInt(Q('d2reportType').value), groupBy: parseInt(Q('d2groupBy').value), start: start, end: end, tz: tz, tf: new Date().getTimezoneOffset(), l: getLang(), devGroup: devGroup, showTraffic: Q('d2showTraffic').checked });
+            putstore('_ReportSettings', JSON.stringify({ type: parseInt(Q('d2reportType').value), groupBy: parseInt(Q('d2groupBy').value), groupBy2: parseInt(Q('d2groupBy2').value), timeRange: parseInt(Q('d2timeRange').value), devGroup: devGroup, showTraffic: Q('d2showTraffic').checked }));
+            var groupBy = parseInt(Q('d2groupBy').value);
+            if (Q('d2reportType').value == 3) { groupBy = parseInt(Q('d2groupBy2').value); }
+            meshserver.send({ action: 'report', type: parseInt(Q('d2reportType').value), groupBy: groupBy, start: start, end: end, tz: tz, tf: new Date().getTimezoneOffset(), l: getLang(), devGroup: devGroup, showTraffic: Q('d2showTraffic').checked });
         }
 
         function renderReport(r) {
-            var colTranslation = { time: "Time", device: "Device", session: "Session", user: "User", devgroup: "Device Group", guest: "Guest", length: "Length", bytesin: "Bytes In", bytesout: "Bytes Out" }
+            var colTranslation = { time: "Time", device: "Device", session: "Session", user: "User", devgroup: "Device Group", guest: "Guest", length: "Length", bytesin: "Bytes In", bytesout: "Bytes Out", os: "Operating System", ip: "IP Address", browser: "Browser", msg: "Message", twofactor: "2nd Factor" }
             var x = '<table style=width:100%>', firstItem;
             var sumByCol = null; // Indicate by what colum we sum by
             var sumByValues = []; // Indicate by what values we sum by
@@ -15809,6 +15880,24 @@
                     return '<i>' + "Unknown User" + '</i>';
                 }
             }
+            if (f == 'msg') {
+                if (v == 107) return '<div style=float:left;margin-right:4px;cursor:pointer class="NotifyIconTiny1"></div>' + "Succesful login";
+                if (v == 108) return '<div style=float:left;margin-right:4px;cursor:pointer class="NotifyIconTiny2"></div>' + "Incorrect 2nd factor";
+                if (v == 109) return '<div style=float:left;margin-right:4px;cursor:pointer class="NotifyIconTiny4"></div>' + "Locked account";
+                if (v == 110) return '<div style=float:left;margin-right:4px;cursor:pointer class="NotifyIconTiny3"></div>' + "Invalid login attempt";
+            }
+            if (f == '2fa') {
+                if (v == '') { return "None"; }
+                if (v == 'backup') { return "Backup Codes"; }
+                if (v == 'fido') { return "FIDO key"; }
+                if (v == 'sms') { return "SMS message"; }
+                if (v == 'hwotp') { return "Hardware OTP"; }
+                if (v == 'push') { return "Push Notification"; }
+                if (v == 'otp') { return "One-Time Password"; }
+                if (v == 'cookie') { return "Remember Device"; }
+                if (v == 'tokenlogin') { return "Login Token"; }
+                if (v == 'ipaddr') { return "IP Address"; }
+            }
             return EscapeHtml(v);
         }
 
@@ -15839,6 +15928,12 @@
                 } else {
                     return "Unknown User";
                 }
+            }
+            if (f == 'msg') {
+                if (v == 107) return "Succesful login";
+                if (v == 108) return "Incorrect 2nd factor";
+                if (v == 109) return "Locked account";
+                if (v == 110) return "Invalid login attempt";
             }
             return '' + v;
         }
@@ -17231,6 +17326,11 @@
             }
         }
 
+        // Request Confirmation if closing while a desktop, terminal session is active
+        window.addEventListener('beforeunload', function (e) {
+            if (((desktop != null) && (xxcurrentView == 11)) || ((terminal != null) && (xxcurrentView == 12))) { e.preventDefault(); e.returnValue = ''; }
+        });
+    
     </script>
 </body>
 </html>

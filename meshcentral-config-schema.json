@@ -152,7 +152,7 @@
           "required": [ "name", "info" ]
         },
         "tlsOffload": { "type": [ "boolean", "string" ], "default": false, "description": "When true, indicates that a TLS offloader is in front of the MeshCentral server. More typically, set this to the IP address of the reverse proxy or TLS offloader so that IP forwarding headers will be trusted. For example: \"127.0.0.1,192.168.1.100\"." },
-        "trustedProxy": { "type": "string" },
+        "trustedProxy": { "type": "string", "default": null, "description": "Trust forwarded headers from these IPs or domains.  Providing the magic string \"CloudFlare\" will cause the server to download the IP address list of trusted CloudFlare proxies directly from CloudFlare on each server start. For example: \"127.0.0.1,proxy.example.com,CloudFlare\"." },
         "mpsPort": { "type": "integer", "minimum": 1, "maximum": 65535 },
         "mpsPortBind": { "type": "string" },
         "mpsAliasPort": { "type": "integer", "minimum": 1, "maximum": 65535 },
@@ -187,12 +187,12 @@
               "description": "Enabled automated upload of the server backups to a Google Drive account, once enabled you need to go in \"My Server\" tab as administrator to associate the account.",
               "properties": {
                 "folderName": {
-                  "type": "integer",
+                  "type": "string",
                   "default": "MeshCentral-Backups",
                   "description": "The name of the folder to create in the Google Drive account."
                 },
                 "maxFiles": {
-                  "type": "string",
+                  "type": "integer",
                   "default": null,
                   "description": "The maximum number of files to keep in the Google Drive folder, older files will be removed if needed."
                 }
@@ -215,12 +215,12 @@
                   "description": "WebDAV account password."
                 },
                 "folderName": {
-                  "type": "integer",
+                  "type": "string",
                   "default": "MeshCentral-Backups",
                   "description": "The name of the folder to create in the WebDAV account."
                 },
                 "maxFiles": {
-                  "type": "string",
+                  "type": "integer",
                   "default": null,
                   "description": "The maximum number of files to keep in the WebDAV folder, older files will be removed if needed."
                 }
@@ -301,6 +301,7 @@
           "rootRedirect": { "type": "string", "default": null, "description": "Redirects HTTP root requests to this URL. When in use, direct users to /login to see the normal login page." },
           "mobileSite": { "type": "boolean", "default": true, "description": "When set to false, this setting will disable the mobile site." },
           "unknownUserRootRedirect": { "type": "string", "default": null, "description": "Redirects HTTP root requests to this URL only where user is not already logged in. When in use, direct users to /login to see the normal login page." },
+          "nightMode": { "type": "integer", "default": 0, "description": "0 = User selects day/night mode, 1 = Always night mode, 2 = Always day mode" },
           "userQuota": { "type": "integer" },
           "meshQuota": { "type": "integer" },
           "loginKey": { "type": [ "string", "array" ], "items": { "type": "string" }, "default": null, "description": "Requires that users add the value ?key=xxx in the URL in order to see the web site." },
@@ -443,6 +444,8 @@
               "sms2factor": { "type": "boolean", "default": true, "description": "Set to false to disable SMS 2FA." },
               "push2factor": { "type": "boolean", "default": true, "description": "Set to false to disable push notification 2FA." },
               "otp2factor": { "type": "boolean", "default": true, "description": "Set to false to disable one-time-password 2FA." },
+              "backupcode2factor": { "type": "boolean", "default": true, "description": "Set to false to disable 2FA backup codes." },
+              "single2factorWarning": { "type": "boolean", "default": true, "description": "Set to false to disable single 2FA warning." },
               "lock2factor": { "type": "boolean", "default": false, "description": "When set to true, prevents any changes to 2FA." },
               "force2factor": { "type": "boolean", "default": false, "description": "Requires that all accounts setup 2FA." },
               "skip2factor": { "type": "string", "description": "IP addresses where 2FA login is skipped, for example: 127.0.0.1,192.168.2.0/24" },
@@ -451,7 +454,8 @@
               "loginTokens": { "type": "boolean", "default": true, "description": "Allows users to create alternative username/passwords for their account." },
               "twoFactorTimeout": { "type": "integer", "default": 300, "description": "Maximum about of time the to wait for a 2FA token on the login page in seconds." },
               "autofido2fa": { "type": "boolean", "default": false, "description": "If true and user account has FIDO key setup, 2FA login screen will automatically request FIDO 2FA." },
-              "maxfidokeys": { "type": "integer", "default": null, "description": "Maximum number of FIDO/YubikeyOTP hardware 2FA keys that can be setup in a user account." }
+              "maxfidokeys": { "type": "integer", "default": null, "description": "Maximum number of FIDO/YubikeyOTP hardware 2FA keys that can be setup in a user account." },
+              "allowaccountreset": { "type": "boolean", "default": true, "description": "If set to false, the account reset option on the login screen will not be available to users." }
             }
           },
           "twoFactorCookieDurationDays": { "type": "integer", "default": 30, "description": "Number of days that a user is allowed to remember this device for when completing 2FA. Set this to 0 to remove this option." },
@@ -488,7 +492,9 @@
               "Title": { "type": "string" },
               "Desktop": { "type": "string" },
               "Terminal": { "type": "string" },
-              "Files": { "type": "string" }
+              "Files": { "type": "string" },
+              "consentTimeout": { "type": "integer", "default": 30, "description": "How long in seconds to show the user consent dialog box." },
+              "autoAcceptOnTimeout": { "type": "boolean", "default": false, "description": "If true, user consent is accepted after the timeout." }
             }
           },
           "notificationMessages": {
@@ -511,8 +517,11 @@
               "description": { "type": "string", "default": "Mesh Agent background service", "description": "The description of the agent as displayed to the user." },
               "companyName": { "type": "string", "default": "Mesh Agent", "description": "This will be used as the path to install the agent, by default this is 'Mesh Agent' in Windows and 'meshagent' in other OS's." },
               "serviceName": { "type": "string", "default": "Mesh Agent", "description": "The name of the background service, by default this is 'Mesh Agent' in Windows and 'meshagent' in other OS's but should be set to an all lower case, no space string." },
+              "installText": { "type": "string", "default": null, "description": "Text string to show in the agent installation dialog box." },
               "image": { "type": "string", "default": null, "description": "The filename of a image file in .png format located in meshcentral-data to display in the MeshCentral Agent installation dialog, image should be square and from 64x64 to 200x200." },
-              "fileName": { "type": "string", "default": "meshagent", "description": "The agent filename." }
+              "fileName": { "type": "string", "default": "meshagent", "description": "The agent filename." },
+              "foregroundColor": { "type": "string", "default": null, "description": "Foreground text color, valid values are RBG in format 0,0,0 to 255,255,255 or format #000000 to #FFFFFF." },
+              "backgroundColor": { "type": "string", "default": null, "description": "Background color, valid values are RBG in format 0,0,0 to 255,255,255 or format #000000 to #FFFFFF." }
             }
           },
           "assistantCustomization": {
@@ -583,7 +592,7 @@
                 "description": "Indicate what string the agent must write to the shell after starting a terminal session",
                 "linux": { "type": "string", "default": " alias ls=\\'ls --color=auto\\';clear\\n", "description": "String to write after opening a Linux terminal." },
                 "darwin": { "type": "string", "default": null, "description": "String to write after opening a macOS terminal." },
-                "freebsd": { "type": "string", "default": null, "description": "String to write after opening a FreeBSD terminal." },
+                "freebsd": { "type": "string", "default": null, "description": "String to write after opening a FreeBSD terminal." }
               }
             }
           },
